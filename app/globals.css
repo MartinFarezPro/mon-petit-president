@@ -228,3 +228,34 @@ details summary { cursor: pointer; font-weight: 600; }
   .duelist { padding: 12px 6px; }
   .duelist b { font-size: 14px; }
 }
+
+/* ─── Classement : choix du mode, grille, progression ─── */
+.modes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.modecard {
+  display: grid; gap: 6px; justify-items: start; text-align: left; padding: 16px; border: 2px solid var(--line); border-radius: 14px;
+  background: var(--paper); color: var(--ink); font: inherit; cursor: pointer;
+}
+.modecard:hover { border-color: var(--bleu); }
+.modecard b { font: 700 18px var(--display); }
+.modecard span { font-size: 14px; color: var(--muted); }
+.modecard small { font: 600 12px var(--mono); color: var(--bleu); }
+.modeic { font-size: 26px; color: var(--ink) !important; }
+.grid-pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; }
+.gp {
+  position: relative; display: grid; justify-items: center; gap: 4px; padding: 12px 6px 10px; border: 2px solid var(--line); border-radius: 12px;
+  background: var(--paper); color: var(--ink); font: inherit; cursor: pointer; text-align: center; min-width: 0;
+}
+.gp b { font-size: 13px; line-height: 1.2; }
+.gp small { color: var(--muted); font: 600 11px var(--mono); }
+.gp[aria-pressed="true"] { border-color: var(--c, var(--bleu)); box-shadow: 0 0 0 3px var(--bleu-soft); }
+.gp-n {
+  position: absolute; top: 6px; left: 6px; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--bleu); color: var(--on-accent); font: 800 13px var(--mono);
+}
+.progress { height: 6px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.progress > div { height: 100%; background: var(--bleu); transition: width .2s ease; }
+@media (max-width: 520px) {
+  .modes { grid-template-columns: 1fr; }
+  .grid-pick { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .gp b { font-size: 12px; }
+}

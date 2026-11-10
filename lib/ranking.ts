@@ -46,14 +46,33 @@ export function currentDuel(s: DuelState): [string, string] | null {
   return s.cur && s.pos > 0 ? [s.sorted[s.pos - 1], s.cur] : null;
 }
 
+/** Plafond du mode duels : au-delà, ceux qui restent à placer suivent l'ordre de départ. */
+export const MAX_DUELS = 40;
+
+/** Arrête les duels : le candidat en cours reste où il est arrivé, les suivants gardent l'ordre de départ. */
+export function finishDuels(s: DuelState): DuelState {
+  if (!s.cur) return s;
+  const sorted = [...s.sorted.slice(0, s.pos), s.cur, ...s.sorted.slice(s.pos), ...s.pending];
+  return { sorted, pending: [], cur: null, pos: sorted.length, played: s.played };
+}
+
 /** Réponse au duel : `challengerWins` = le candidat qui monte fait plus de voix que celui au-dessus. */
-export function answerDuel(s: DuelState, challengerWins: boolean): DuelState {
+export function answerDuel(s: DuelState, challengerWins: boolean, max = MAX_DUELS): DuelState {
   if (!s.cur) return s;
   const played = s.played + 1;
-  if (challengerWins && s.pos > 1) return { ...s, pos: s.pos - 1, played };
-  const at = challengerWins ? 0 : s.pos;
-  const sorted = [...s.sorted.slice(0, at), s.cur, ...s.sorted.slice(at)];
-  return next(sorted, s.pending, played);
+  let out: DuelState;
+  if (challengerWins && s.pos > 1) out = { ...s, pos: s.pos - 1, played };
+  else {
+    const at = challengerWins ? 0 : s.pos;
+    out = next([...s.sorted.slice(0, at), s.cur, ...s.sorted.slice(at)], s.pending, played);
+  }
+  return played >= max ? finishDuels(out) : out;
+}
+
+/** Mode grille : les candidats touchés dans l'ordre, puis les autres dans l'ordre de départ. */
+export function gridRanking(picked: string[], base: string[]): string[] {
+  const top = picked.filter((id, i) => base.includes(id) && picked.indexOf(id) === i);
+  return [...top, ...base.filter((id) => !top.includes(id))];
 }
 
 export function duelsDone(s: DuelState) {

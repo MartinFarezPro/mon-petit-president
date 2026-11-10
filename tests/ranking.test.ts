@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  answerDuel, baseOrder, capFor, currentDuel, duelsDone, leaderShare, normalizeRanking, orderErrors,
+  answerDuel, baseOrder, capFor, finishDuels, gridRanking, currentDuel, duelsDone, leaderShare, normalizeRanking, orderErrors,
   orderFromScores, rankedValues, startDuels, surpriseFrom, type DuelState,
 } from "../lib/ranking";
 
@@ -26,6 +26,25 @@ describe("duels", () => {
 
   it("ne pose que n-1 duels si le joueur suit l'ordre de départ", () => {
     expect(play(ids, ids).played).toBe(ids.length - 1);
+  });
+
+  it("s'arrête au plafond de duels avec un classement complet", () => {
+    const many = Array.from({ length: 17 }, (_, i) => `c${i}`);
+    let s: DuelState = startDuels(many);
+    while (!duelsDone(s)) s = answerDuel(s, true, 40); // le joueur renverse tout : sans plafond, 136 duels
+    expect(s.played).toBe(40);
+    expect([...s.sorted].sort()).toEqual([...many].sort());
+  });
+
+  it("finishDuels garde le candidat en cours là où il est arrivé", () => {
+    let s = startDuels(["a", "b", "c", "d"]);
+    s = answerDuel(s, false); // b sous a
+    s = answerDuel(s, true); // c passe devant b
+    expect(finishDuels(s).sorted).toEqual(["a", "c", "b", "d"]);
+  });
+
+  it("mode grille : top touché puis ordre de départ", () => {
+    expect(gridRanking(["d", "b", "d", "zz"], ["a", "b", "c", "d"])).toEqual(["d", "b", "a", "c"]);
   });
 
   it("un seul candidat : rien à jouer", () => {
