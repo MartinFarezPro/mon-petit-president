@@ -1,3 +1,4 @@
+import { Portrait } from "@/components/Portrait";
 import { loadLeague } from "@/lib/data";
 import { fmtDate, fmtDelta, fmtNum, shortName } from "@/lib/format";
 
@@ -49,7 +50,7 @@ export default async function Sondages({ params }: { params: Promise<{ id: strin
               <tbody>
                 {rows.filter((r) => r.v != null).map(({ c }) => (
                   <tr key={c.id}>
-                    <td><span className="dot" style={{ background: c.couleur, marginRight: 8 }} />{shortName(c.nom)}</td>
+                    <td><span className="team"><Portrait c={c} size={28} />{shortName(c.nom)}</span></td>
                     {history.map((p) => <td key={p.id} className="num">{fmtNum(p.valeurs[c.id])}</td>)}
                   </tr>
                 ))}

@@ -110,7 +110,7 @@ describe("classement", () => {
     { question_id: "c", user_id: "u2", reponse: "Z", updated_at: "" }, // journée pas encore close
   ];
   const picks: FinalPick[] = [
-    { ...basePick, user_id: "u3", league_id: "l", capitaine: "attal", scores: {}, updated_at: "" },
+    { ...basePick, user_id: "u3", league_id: "l", capitaine: "attal", scores: {}, classement: [], updated_at: "" },
   ];
 
   it("ne compte que les journées closes", () => {

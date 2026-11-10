@@ -37,7 +37,7 @@ export function CandidatesForm({ candidates }: { candidates: Candidate[] }) {
     <form action={action} className="stack">
       <div className="tbl">
         <table>
-          <thead><tr><th>Ordre</th><th>Nom</th><th>Parti</th><th>Couleur</th><th>Actif</th></tr></thead>
+          <thead><tr><th>Ordre</th><th>Nom</th><th>Parti</th><th>Couleur</th><th>Portrait (URL)</th><th>Actif</th></tr></thead>
           <tbody>
             {candidates.map((c) => (
               <tr key={c.id}>
@@ -45,6 +45,7 @@ export function CandidatesForm({ candidates }: { candidates: Candidate[] }) {
                 <td style={{ minWidth: 160 }}><input name={`nom_${c.id}`} defaultValue={c.nom} /><small className="hint mono">{c.id}</small></td>
                 <td style={{ minWidth: 140 }}><input name={`parti_${c.id}`} defaultValue={c.parti} /></td>
                 <td style={{ width: 64 }}><input type="color" name={`couleur_${c.id}`} defaultValue={c.couleur} /></td>
+                <td style={{ minWidth: 180 }}><input type="url" name={`photo_${c.id}`} defaultValue={c.photo ?? ""} placeholder="https://…" /></td>
                 <td><input type="checkbox" name={`actif_${c.id}`} defaultChecked={c.actif} /></td>
               </tr>
             ))}
@@ -67,6 +68,7 @@ export function AddCandidateForm() {
         <div><label>Parti</label><input name="parti" /></div>
         <div><label>Couleur</label><input type="color" name="couleur" defaultValue="#888888" /></div>
         <div><label>Ordre</label><input type="number" name="ordre" defaultValue={100} /></div>
+        <div><label>Portrait (URL)</label><input type="url" name="photo" placeholder="https://…" /></div>
       </div>
       <div className="row"><SubmitButton className="btn ghost">Ajouter</SubmitButton></div>
       <FormMessage state={state} />

@@ -29,6 +29,7 @@ export default async function Prono({ params }: { params: Promise<{ id: string }
       )}
 
       <PickForm leagueId={id} candidates={ctx.candidates} poll={latest?.valeurs ?? {}} pick={mine} locked={locked} />
+      <p className="hint" style={{ textAlign: "center" }}>Portraits : Wikimédia Commons, sous licences libres.</p>
 
       {locked && ctx.picks.length > 0 && (
         <>

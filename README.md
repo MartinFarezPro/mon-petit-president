@@ -22,7 +22,7 @@ Le jeu de pronostics entre potes pour la présidentielle 2027, façon MPG.
 ### 1. Supabase
 
 1. Crée un projet dans la région **Europe** (Frankfurt ou Paris).
-2. Va dans **SQL Editor**, colle le contenu de `supabase/migrations/20261109000000_init.sql`, puis clique sur **Run**. Le script crée les tables, la RLS, les fonctions, les 15 candidats et le sondage du 9 novembre 2026.
+2. Va dans **SQL Editor**, colle le contenu de `supabase/migrations/20261109000000_init.sql`, puis clique sur **Run**. Fais pareil, dans l'ordre, avec les migrations suivantes du dossier (`20261110000000_duels_portraits.sql` : portraits, Ruffin, Lalanne et classement par duels). Le script crée les tables, la RLS, les fonctions, les 15 candidats et le sondage du 9 novembre 2026.
 3. Récupère dans **Settings → API** l'URL du projet et la clé `anon`. Ne partage jamais la clé `service_role`.
 4. Dans **Authentication → URL Configuration**, renseigne :
    - Site URL : `https://ton-domaine.fr`

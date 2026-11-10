@@ -18,6 +18,12 @@ function num(v: FormDataEntryValue | null, digits = 1): number | null {
   return Number.isFinite(x) ? Math.round(x * f) / f : null;
 }
 
+/** URL https d'un portrait, ou null. */
+function photoUrl(v: FormDataEntryValue | null): string | null {
+  const s = String(v ?? "").trim();
+  return /^https:\/\/\S+$/.test(s) ? s : null;
+}
+
 export async function saveCandidates(_prev: FormState, form: FormData): Promise<FormState> {
   const { supabase } = await requireSuperadmin();
   const all = await getCandidates(true);
@@ -28,6 +34,7 @@ export async function saveCandidates(_prev: FormState, form: FormData): Promise<
       couleur: String(form.get(`couleur_${c.id}`) ?? c.couleur),
       ordre: Number(form.get(`ordre_${c.id}`) ?? c.ordre) || 100,
       actif: form.get(`actif_${c.id}`) === "on",
+      photo: photoUrl(form.get(`photo_${c.id}`)),
     };
     const { error } = await supabase.from("candidates").update(row).eq("id", c.id);
     if (error) return fail(`${c.nom} : ${pgError(error)}`);
@@ -46,6 +53,7 @@ export async function addCandidate(_prev: FormState, form: FormData): Promise<Fo
   const { error } = await supabase.from("candidates").insert({
     id, nom, parti: String(form.get("parti") ?? "").trim(), couleur: String(form.get("couleur") ?? "#888888"),
     ordre: Number(form.get("ordre") ?? 100) || 100,
+    photo: photoUrl(form.get("photo")),
   });
   if (error) return fail(pgError(error));
   revalidatePath("/", "layout");

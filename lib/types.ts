@@ -22,6 +22,7 @@ export type Candidate = {
   couleur: string;
   actif: boolean;
   ordre: number;
+  photo: string | null;
 };
 
 export type Poll = {
@@ -40,6 +41,7 @@ export type FinalPick = {
   gagnant: string | null;
   score_gagnant: number | null;
   scores: Record<string, number>;
+  classement: string[];
   capitaine: string | null;
   surprise: string | null;
   participation: number | null;
