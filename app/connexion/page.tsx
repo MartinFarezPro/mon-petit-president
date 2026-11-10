@@ -15,7 +15,7 @@ export default async function Connexion({ searchParams }: { searchParams: Promis
       <TopBar profile={null} />
       <section className="card stack">
         <h1 style={{ fontSize: 28 }}>Connexion</h1>
-        <p className="hint">Pas de mot de passe : on t&apos;envoie un lien magique par e-mail. Même adresse = même compte.</p>
+        <p className="hint">Pas de mot de passe : on t&apos;envoie un code par e-mail. Même adresse = même compte, et tu restes connecté sur cet appareil.</p>
         {erreur && <p className="notice err">Le lien a expiré ou a déjà servi. Demande-en un nouveau.</p>}
         <LoginForm next={safe} />
       </section>

@@ -37,11 +37,14 @@ Le jeu de pronostics entre potes pour la présidentielle 2027, façon MPG.
    where id = (select id from auth.users where email = 'martin.farez@hipto.com');
    ```
 
-Optionnel : dans **Authentication → Emails → Magic Link**, tu peux traduire le modèle en français, par exemple avec le sujet « Ton lien pour Mon Petit Président ».
+7. **Connexion par code.** Dans **Authentication → Emails**, colle `supabase/templates/magic-link.html` dans les modèles **Magic Link** et **Confirm signup**, avec le sujet « {{ .Token }} — ton code Mon Petit Président ». L'e-mail contient alors un code à 6 chiffres (indispensable pour l'app installée sur iPhone, qui ne partage pas les cookies de Safari) et un lien qui marche dans n'importe quel navigateur.
+8. **Sessions.** Dans **Authentication → Sessions**, laisse *Time-box user sessions* et *Inactivity timeout* vides : les joueurs restent connectés tant qu'ils reviennent.
+
+**Anti-pause.** Le plan gratuit de Supabase met le projet en pause après 7 jours sans activité. `vercel.json` déclare un cron quotidien qui appelle `/api/keepalive`. Optionnel : ajoute une variable `CRON_SECRET` dans Vercel pour que seul le cron puisse l'appeler.
 
 ### 2. Vercel
 
-1. Importe le dépôt GitHub `MartinFarezPro/mon-petit-president`.
+1. Importe le dépôt GitHub `martinfarez-a11y/mon-petit-president`.
 2. Ajoute les variables d'environnement (voir `.env.example`) :
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`

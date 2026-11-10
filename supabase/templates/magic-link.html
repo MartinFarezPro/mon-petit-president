@@ -1,0 +1,14 @@
+<!-- Supabase → Authentication → Emails → "Magic Link" ET "Confirm signup" : coller ce modèle dans les deux.
+     Sujet conseillé : « {{ .Token }} — ton code Mon Petit Président » -->
+<div style="font-family:system-ui,-apple-system,Segoe UI,sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#14213d">
+  <h1 style="font-size:22px;margin:0 0 16px">Mon Petit Président 🗳️</h1>
+  <p style="margin:0 0 8px">Ton code de connexion :</p>
+  <p style="font-size:34px;font-weight:700;letter-spacing:6px;margin:0 0 20px;font-family:ui-monospace,Menlo,monospace">{{ .Token }}</p>
+  <p style="margin:0 0 20px">Tape-le dans l'app ou sur le site. Il est valable une heure.</p>
+  <p style="margin:0 0 8px">Ou clique sur ce bouton, depuis n'importe quel navigateur :</p>
+  <p style="margin:0 0 24px">
+    <a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email"
+       style="display:inline-block;background:#1d3fbb;color:#fff;padding:12px 20px;border-radius:10px;text-decoration:none;font-weight:600">Me connecter</a>
+  </p>
+  <p style="font-size:13px;color:#667">Tu n'as rien demandé ? Ignore simplement cet e-mail.</p>
+</div>

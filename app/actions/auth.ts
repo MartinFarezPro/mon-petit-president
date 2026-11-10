@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { pathAfterLogin } from "@/lib/after-login";
 import { fail, ok, type FormState } from "./state";
 
 async function siteUrl() {
@@ -31,7 +32,22 @@ export async function sendMagicLink(_prev: FormState, form: FormData): Promise<F
     if (/rate|limit/i.test(error.message)) return fail("Trop de demandes : réessaie dans quelques minutes.");
     return fail(error.message);
   }
-  return ok(`Lien envoyé à ${email}. Ouvre l'e-mail sur cet appareil et clique sur le lien.`);
+  return ok(`E-mail envoyé à ${email}. Tape le code reçu ci-dessous, ou clique sur le lien.`);
+}
+
+export async function verifyCode(_prev: FormState, form: FormData): Promise<FormState> {
+  const email = String(form.get("email") ?? "").trim().toLowerCase();
+  const token = String(form.get("code") ?? "").replace(/\D/g, "");
+  if (!email) return fail("Redemande un code avec ton e-mail.");
+  if (token.length < 6 || token.length > 8) return fail("Le code fait 6 chiffres.");
+  const next = safeNext(form.get("next"));
+  const supabase = await createClient();
+  const { error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
+  if (error) {
+    if (/rate|limit/i.test(error.message)) return fail("Trop d'essais : réessaie dans quelques minutes.");
+    return fail("Code invalide ou expiré. Vérifie-le ou demande un nouvel e-mail.");
+  }
+  redirect(await pathAfterLogin(supabase, next));
 }
 
 export async function signOut() {

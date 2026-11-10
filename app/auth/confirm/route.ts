@@ -1,6 +1,7 @@
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { pathAfterLogin } from "@/lib/after-login";
 
 // Lien magique : gère le flux PKCE (?code=) et le lien par token (?token_hash=&type=)
 export async function GET(request: NextRequest) {
@@ -21,12 +22,5 @@ export async function GET(request: NextRequest) {
   }
   if (!ok) return NextResponse.redirect(`${origin}/connexion?erreur=lien&next=${encodeURIComponent(next)}`);
 
-  // Premier passage : on propose de compléter le profil
-  const { data: claims } = await supabase.auth.getClaims();
-  const uid = claims?.claims?.sub;
-  if (uid) {
-    const { data: p } = await supabase.from("profiles").select("equipe").eq("id", uid).maybeSingle();
-    if (p && !p.equipe) return NextResponse.redirect(`${origin}/profil?bienvenue=1&next=${encodeURIComponent(next)}`);
-  }
-  return NextResponse.redirect(`${origin}${next}`);
+  return NextResponse.redirect(`${origin}${await pathAfterLogin(supabase, next)}`);
 }
