@@ -2,6 +2,7 @@ import Link from "next/link";
 import { signOut } from "@/app/actions/auth";
 import type { Profile } from "@/lib/types";
 import { Avatar } from "./Avatar";
+import { Icon } from "./Icon";
 import { ThemeToggle } from "./ThemeToggle";
 
 export function TopBar({ profile }: { profile: Profile | null }) {
@@ -16,6 +17,9 @@ export function TopBar({ profile }: { profile: Profile | null }) {
       </Link>
       {profile ? (
         <div className="row" style={{ gap: 6 }}>
+          <Link href="/ligues" className="linkbtn mes-ligues" title="Mes ligues : changer, rejoindre ou créer">
+            <Icon name="ligues" size={18} /><span className="hide-sm">Mes ligues</span>
+          </Link>
           <ThemeToggle />
           {profile.is_superadmin && <Link href="/admin" className="linkbtn">Admin</Link>}
           <Link href="/profil" className="row" style={{ gap: 6, textDecoration: "none", color: "var(--ink)" }} title="Mon profil">

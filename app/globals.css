@@ -664,3 +664,5 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 0; 
   .mainnav a { border-top: 0; padding: 8px 2px 6px; margin: 0; }
   .topbar { margin-top: max(-16px, calc(-1 * env(safe-area-inset-top))); }
 }
+.mes-ligues { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; text-decoration: none; }
+.eyebrow .switch { color: inherit; text-decoration: underline; text-underline-offset: 3px; text-transform: none; letter-spacing: 0; font-weight: 700; }

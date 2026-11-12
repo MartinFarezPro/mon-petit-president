@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Countdown } from "@/components/Countdown";
 import { LeagueTabs } from "@/components/LeagueTabs";
 import { PronoCta } from "@/components/PronoCta";
@@ -32,7 +33,9 @@ export default async function LeagueLayout({ children, params }: { children: Rea
       <header className="hero">
         <div>
           <div className="tricolore" aria-hidden="true"><i /><i /><i /></div>
-          <div className="eyebrow" style={{ marginTop: 12 }}>Ligue · {ctx.members.length} joueur{ctx.members.length > 1 ? "s" : ""}</div>
+          <div className="eyebrow" style={{ marginTop: 12 }}>
+            Ligue · {ctx.members.length} joueur{ctx.members.length > 1 ? "s" : ""} · <Link href="/ligues" className="switch">Changer de ligue ↔</Link>
+          </div>
           <h1 style={{ fontSize: "clamp(28px, 6vw, 44px)" }}>{ctx.league.nom}</h1>
           <div className="dates" style={{ marginTop: 10 }}>
             <span>1er tour · dim. 18 avril</span><span>2nd tour · dim. 2 mai</span>

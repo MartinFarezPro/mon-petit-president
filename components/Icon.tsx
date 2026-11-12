@@ -8,6 +8,7 @@ const PATHS = {
   livre: "M4 4h6a3 3 0 0 1 3 3v13a2 2 0 0 0-2-2H4zM20 4h-6a3 3 0 0 0-1 .2M20 4v14h-7",
   reglages: "M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0M14 4v4M8 10v4M16 16v4",
   cadenas: "M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4",
+  ligues: "M3 4h7v7H3zM14 4h7v7h-7zM3 15h7v6H3zM17.5 14v7M14 17.5h7",
 } as const;
 
 export type IconName = keyof typeof PATHS;

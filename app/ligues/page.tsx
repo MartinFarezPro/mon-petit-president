@@ -46,6 +46,11 @@ export default async function Ligues() {
         </section>
         <section className="card stack">
           <h2 style={{ fontSize: 20 }}>Créer une ligue</h2>
+          <p className="hint">
+            {profile.is_superadmin
+              ? "Superadmin : ligues illimitées, jusqu'à 500 joueurs chacune."
+              : `Tu en administres ${leagues.filter((l) => l.admin_id === userId).length} sur 10 possibles. Une ligue accueille jusqu'à 50 joueurs, et tu peux en rejoindre autant que tu veux.`}
+          </p>
           <CreateLeagueForm />
         </section>
       </div>
