@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   annule, compte, justesse, PARIS, PARIS_BY_ID, PARIS_TOTAL, precocite, scorePari, trancher, type Faits, type Verdict,
@@ -23,8 +23,11 @@ describe("catalogue", () => {
   });
 
   it("dates identiques au code et à la migration SQL", () => {
-    const sql = readFileSync(new URL("../supabase/migrations/20261112000000_paris_quiz.sql", import.meta.url), "utf8");
-    const rows = [...sql.matchAll(/\('([a-z0-9_]+)',\s*'([^']+)',\s*'([^']+)'\)/g)];
+    // Les migrations s'appliquent dans l'ordre : la dernière valeur de chaque pari gagne.
+    const dir = new URL("../supabase/migrations/", import.meta.url);
+    const sql = readdirSync(dir).filter((f) => f.endsWith(".sql")).sort().map((f) => readFileSync(new URL(f, dir), "utf8")).join("\n");
+    const last = new Map([...sql.matchAll(/\('([a-z0-9_]+)',\s*'([^']+)',\s*'([^']+)'\)/g)].filter((r) => P[r[1]] || /\d{4}-/.test(r[2])).map((r) => [r[1], r]));
+    const rows = [...last.values()];
     const iso = (s: string) => new Date(s.replace(" ", "T").replace(/([+-]\d\d)$/, "$1:00")).getTime();
     expect(rows.map((r) => r[1]).sort()).toEqual(PARIS.map((p) => p.id).sort());
     for (const [, id, o, c] of rows) {
@@ -140,7 +143,7 @@ describe("points", () => {
   const f: Faits = { ...base, results: t1 };
   it("rien avant la clôture, 0 sans pari, 25 × justesse × précocité sinon", () => {
     const v = trancher(P.troisieme, f, after);
-    expect(scorePari(P.troisieme, v, { reponse: ["melenchon"], updated_at: P.troisieme.ouverture }, new Date("2027-04-10"))).toBeNull();
+    expect(scorePari(P.troisieme, v, { reponse: ["melenchon"], updated_at: P.troisieme.ouverture }, new Date("2027-04-01"))).toBeNull();
     expect(scorePari(P.troisieme, v, undefined, after)).toEqual({ points: 0, justesse: 0, precocite: 0 });
     expect(scorePari(P.troisieme, v, { reponse: ["melenchon"], updated_at: P.troisieme.ouverture }, after)!.points).toBe(25);
     expect(scorePari(P.troisieme, v, { reponse: ["melenchon"], updated_at: P.troisieme.cloture }, after)!.points).toBe(20);

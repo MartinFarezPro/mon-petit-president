@@ -1,6 +1,6 @@
 import { loadLeague } from "@/lib/data";
 import { countdown, fmtPts, shortName } from "@/lib/format";
-import { PARIS, PARIS_TOTAL, PHASES, POINTS_PARI, scorePari, trancher, type Pari, type Phase } from "@/lib/paris";
+import { PARIS, PARIS_TOTAL, PHASES, POINTS_PARI, scorePari, trancher, VERROU_CAMPAGNE, type Pari, type Phase } from "@/lib/paris";
 import { PariCard } from "./PariCard";
 
 export const metadata = { title: "Paris" };
@@ -38,6 +38,20 @@ export default async function Paris({ params }: { params: Promise<{ id: string }
           {next && <div><b>{countdown(new Date(next.cloture), now) ?? "–"}</b><small>avant la prochaine clôture</small></div>}
         </div>
       </section>
+
+      {now < new Date(VERROU_CAMPAGNE) && (
+        <div className="verrou">
+          <span className="verrou-ic" aria-hidden="true">🔒</span>
+          <div>
+            <b>Grand verrouillage : lundi 5 avril 2027, début de la campagne officielle</b>
+            <p className="hint">
+              Tous les paris sur le 1er et le 2nd tour se figent à cette date. Les paris sur les parrainages ferment le 31 janvier.
+              Le prono final, lui, reste modifiable jusqu&apos;au 17 avril.
+            </p>
+          </div>
+          <span className="verrou-cd">{countdown(new Date(VERROU_CAMPAGNE), now)}</span>
+        </div>
+      )}
 
       {(Object.keys(PHASES) as Phase[]).map((ph) => {
         const list = PARIS.filter((p) => p.phase === ph);

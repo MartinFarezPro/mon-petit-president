@@ -49,6 +49,7 @@ export function Bareme() {
           <div>Pari à un seul choix : bonne réponse (ex æquo acceptés)</div><div>{POINTS_PARI}</div>
           <div>Pari à plusieurs candidats : part des bons trouvés moins part des mauvais cochés (jamais sous 0). Tout cocher rapporte 0.</div><div>≤ {POINTS_PARI}</div>
           <div>Précocité : un pari vaut 100 % à l&apos;ouverture et descend jusqu&apos;à 80 % à la clôture. Changer d&apos;avis remet le compteur à l&apos;heure.</div><div>×0,8 à ×1</div>
+          <div>Verrouillages : sondages le 31 décembre, parrainages le 31 janvier, et tous les paris sur le scrutin au début de la campagne officielle (lundi 5 avril 2027)</div><div>🔒</div>
         </div>
         <ul className="bareme-list">
           {(Object.keys(PHASES) as (keyof typeof PHASES)[]).map((ph) => (

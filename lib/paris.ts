@@ -39,6 +39,10 @@ export type Pari = {
 };
 
 const OUV = "2026-11-12T00:00:00+01:00";
+/** Grand verrouillage : début de la campagne officielle (2e lundi avant le 1er tour), lundi 5 avril 2027 à 0 h. */
+export const VERROU_CAMPAGNE = "2027-04-04T23:59:59+02:00";
+/** Paris sur les parrainages : clos avant que les publications du Conseil constitutionnel ne donnent la réponse. */
+const VERROU_PARRAINAGES = "2027-01-31T23:59:59+01:00";
 
 export const PARIS: Pari[] = [
   {
@@ -57,25 +61,25 @@ export const PARIS: Pari[] = [
     id: "p500_rates", phase: "parrainages", emoji: "🚫",
     question: "Qui n'aura pas ses 500 parrainages ?",
     aide: "Coche tous ceux qui resteront sous la barre (ou qui renonceront). Un mauvais candidat coché coûte des points.",
-    kind: "candidats", ouverture: OUV, cloture: "2027-01-31T23:59:59+01:00",
+    kind: "candidats", ouverture: OUV, cloture: VERROU_PARRAINAGES,
   },
   {
     id: "p500_premier", phase: "parrainages", emoji: "🏁",
     question: "Qui franchira le premier la barre des 500 parrainages ?",
     aide: "Selon les publications du Conseil constitutionnel. Ex æquo dans la même publication : tous gagnants.",
-    kind: "candidat", ouverture: OUV, cloture: "2027-01-31T23:59:59+01:00",
+    kind: "candidat", ouverture: OUV, cloture: VERROU_PARRAINAGES,
   },
   {
     id: "p500_record", phase: "parrainages", emoji: "🖋️",
     question: "Qui récoltera le plus de parrainages ?",
     aide: "Total à la clôture du dépôt.",
-    kind: "candidat", ouverture: OUV, cloture: "2027-02-15T23:59:59+01:00",
+    kind: "candidat", ouverture: OUV, cloture: VERROU_PARRAINAGES,
   },
   {
     id: "nb_candidats", phase: "parrainages", emoji: "🔢",
     question: "Combien de candidats auront leurs 500 parrainages ?",
     aide: "Total à la clôture du dépôt.",
-    kind: "choix", ouverture: OUV, cloture: "2027-02-15T23:59:59+01:00",
+    kind: "choix", ouverture: OUV, cloture: VERROU_PARRAINAGES,
     choix: [
       { id: "max9", label: "9 ou moins" }, { id: "10_11", label: "10 ou 11" },
       { id: "12_13", label: "12 ou 13" }, { id: "14plus", label: "14 ou plus" },
@@ -85,31 +89,31 @@ export const PARIS: Pari[] = [
     id: "surcote", phase: "premier_tour", emoji: "🎈",
     question: "Qui sera le plus surcoté par les sondages ?",
     aide: "Plus gros écart entre le dernier relevé avant le 1er tour et le score réel, à la baisse.",
-    kind: "candidat", ouverture: OUV, cloture: "2027-04-11T23:59:59+02:00",
+    kind: "candidat", ouverture: OUV, cloture: VERROU_CAMPAGNE,
   },
   {
     id: "souscote", phase: "premier_tour", emoji: "🐢",
     question: "Qui sera le plus sous-coté par les sondages ?",
     aide: "Plus gros écart entre le dernier relevé avant le 1er tour et le score réel, à la hausse.",
-    kind: "candidat", ouverture: OUV, cloture: "2027-04-11T23:59:59+02:00",
+    kind: "candidat", ouverture: OUV, cloture: VERROU_CAMPAGNE,
   },
   {
     id: "sous5", phase: "premier_tour", emoji: "💸",
     question: "Qui fera moins de 5 % au 1er tour (et ne sera pas remboursé) ?",
     aide: "Coche tous ceux qui passeront sous 5 %. Les non-candidats ne comptent pas.",
-    kind: "candidats", ouverture: OUV, cloture: "2027-04-17T23:59:59+02:00",
+    kind: "candidats", ouverture: OUV, cloture: VERROU_CAMPAGNE,
   },
   {
     id: "troisieme", phase: "premier_tour", emoji: "😤",
     question: "Qui finira 3e du 1er tour, au pied du podium ?",
     aide: "Résultats officiels du ministère de l'Intérieur.",
-    kind: "candidat", ouverture: OUV, cloture: "2027-04-17T23:59:59+02:00",
+    kind: "candidat", ouverture: OUV, cloture: VERROU_CAMPAGNE,
   },
   {
     id: "plus10", phase: "premier_tour", emoji: "🔟",
     question: "Combien de candidats feront 10 % ou plus au 1er tour ?",
     aide: "Résultats officiels du ministère de l'Intérieur.",
-    kind: "choix", ouverture: OUV, cloture: "2027-04-17T23:59:59+02:00",
+    kind: "choix", ouverture: OUV, cloture: VERROU_CAMPAGNE,
     choix: [
       { id: "1_2", label: "1 ou 2" }, { id: "3", label: "3" }, { id: "4", label: "4" }, { id: "5plus", label: "5 ou plus" },
     ],
@@ -118,7 +122,7 @@ export const PARIS: Pari[] = [
     id: "ecart23", phase: "premier_tour", emoji: "📏",
     question: "Quel écart entre le 2e (qualifié) et le 3e (éliminé) ?",
     aide: "En points de pourcentage.",
-    kind: "choix", ouverture: OUV, cloture: "2027-04-17T23:59:59+02:00",
+    kind: "choix", ouverture: OUV, cloture: VERROU_CAMPAGNE,
     choix: [
       { id: "moins2", label: "Moins de 2 pts" }, { id: "2a5", label: "De 2 à 5 pts" }, { id: "plus5", label: "Plus de 5 pts" },
     ],
@@ -127,14 +131,14 @@ export const PARIS: Pari[] = [
     id: "premier_elu", phase: "second_tour", emoji: "👑",
     question: "Le 1er du 1er tour sera-t-il élu président ?",
     aide: "Tranché au soir du 2nd tour.",
-    kind: "choix", ouverture: OUV, cloture: "2027-04-17T23:59:59+02:00",
+    kind: "choix", ouverture: OUV, cloture: VERROU_CAMPAGNE,
     choix: [{ id: "oui", label: "Oui" }, { id: "non", label: "Non, retournement !" }],
   },
   {
     id: "participation_t2", phase: "second_tour", emoji: "🏃",
     question: "Participation au 2nd tour : plus haute qu'au 1er ?",
     aide: "Tranché au soir du 2nd tour.",
-    kind: "choix", ouverture: OUV, cloture: "2027-05-01T23:59:59+02:00",
+    kind: "choix", ouverture: OUV, cloture: VERROU_CAMPAGNE,
     choix: [{ id: "plus", label: "Plus haute" }, { id: "moins", label: "Plus basse (ou égale)" }],
   },
 ];
