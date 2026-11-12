@@ -22,17 +22,15 @@ export async function savePari(pariId: string, reponse: string[], leagueId: stri
   const clean = [...new Set(reponse.filter((r) => valid.has(r)))];
   if (pari.kind !== "candidats" && clean.length > 1) return { ok: false, error: "Un seul choix possible." };
 
+  const { data: prev } = await supabase.from("paris_reponses").select("verrouille_le").match({ user_id: userId, pari_id: pariId }).maybeSingle();
+  if (prev?.verrouille_le) return { ok: false, error: "Ce pari est verrouillé 🔒" };
+
   if (clean.length === 0 && pari.kind !== "candidats") {
     const { error } = await supabase.from("paris_reponses").delete().match({ user_id: userId, pari_id: pariId });
     if (error) return { ok: false, error: pgError(error) };
     revalidatePath("/ligues", "layout");
     return { ok: true, updated_at: null };
   }
-
-  // Inchangé : on ne touche pas à la date (elle sert au bonus de précocité).
-  const { data: prev } = await supabase.from("paris_reponses").select("reponse, updated_at").match({ user_id: userId, pari_id: pariId }).maybeSingle();
-  const same = prev && JSON.stringify([...(prev.reponse as string[])].sort()) === JSON.stringify([...clean].sort());
-  if (same) return { ok: true, updated_at: prev.updated_at as string };
 
   const { data, error } = await supabase
     .from("paris_reponses")
@@ -42,4 +40,25 @@ export async function savePari(pariId: string, reponse: string[], leagueId: stri
   if (error) return { ok: false, error: pgError(error) };
   revalidatePath("/ligues", "layout");
   return { ok: true, updated_at: data.updated_at as string };
+}
+
+export type LockResult = { ok: true; verrouille_le: string } | { ok: false; error: string };
+
+/** Pose le cadenas : le pari ne bouge plus, et sa valeur est figée à l'heure du serveur. */
+export async function lockPari(pariId: string, leagueId: string): Promise<LockResult> {
+  const { supabase, userId } = await requireUser(`/ligues/${leagueId}/paris`);
+  const pari = PARIS_BY_ID[pariId];
+  if (!pari) return { ok: false, error: "Pari inconnu." };
+  if (new Date() >= new Date(pari.cloture)) return { ok: false, error: "Trop tard : ce pari est clos." };
+  const { data, error } = await supabase
+    .from("paris_reponses")
+    .update({ verrouille_le: new Date().toISOString() }) // l'heure est réécrite par la base (now())
+    .match({ user_id: userId, pari_id: pariId })
+    .is("verrouille_le", null)
+    .select("verrouille_le")
+    .maybeSingle();
+  if (error) return { ok: false, error: pgError(error) };
+  if (!data) return { ok: false, error: "Place d'abord ton pari, ou il est déjà verrouillé." };
+  revalidatePath("/ligues", "layout");
+  return { ok: true, verrouille_le: data.verrouille_le as string };
 }

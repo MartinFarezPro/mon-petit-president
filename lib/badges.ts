@@ -12,7 +12,7 @@ export const BADGES = {
   boulet: { id: "boulet", emoji: "🪨", label: "Boulet de la semaine", title: "Pire score au dernier quiz" },
   sansfaute: { id: "sansfaute", emoji: "💯", label: "Sans-faute", title: "10/10 au dernier quiz" },
   serie: { id: "serie", emoji: "🔥", label: "En série", title: "A joué tous les quiz depuis au moins 3 semaines" },
-  flair: { id: "flair", emoji: "🎯", label: "Flair", title: "Au moins un pari parfait" },
+  flair: { id: "flair", emoji: "🎯", label: "Flair", title: "Un pari gagné, verrouillé tôt" },
   kamikaze: { id: "kamikaze", emoji: "🪂", label: "Kamikaze", title: "Capitaine hors des 4 favoris" },
 } satisfies Record<string, Badge>;
 

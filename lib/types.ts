@@ -67,6 +67,8 @@ export type PariReponse = {
   pari_id: string;
   reponse: string[];
   updated_at: string;
+  /** Heure du cadenas posé par le joueur (null = pas verrouillé, figé à 50 % à la clôture). */
+  verrouille_le: string | null;
 };
 
 export type Quiz = {

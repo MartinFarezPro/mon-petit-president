@@ -512,3 +512,19 @@ td.num { font-size: 17px; font-weight: 600; }
   .brand { font-size: 16px; gap: 8px; }
   .topbar .linkbtn { font-size: 16px; padding: 6px 4px; }
 }
+
+/* ─── Cadenas des paris ─── */
+.lockbar { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; padding: 12px 14px;
+  border-radius: 12px; background: var(--bg); border: 1px dashed var(--line); }
+.lockbar > div:not(.row) { display: grid; gap: 3px; min-width: 0; flex: 1 1 220px; }
+.lockbar b { font-size: 14px; }
+.lockbar small { color: var(--muted); font-size: 12.5px; }
+.lockbar small b { color: var(--ink); font-family: var(--mono); font-size: 15px; }
+.lockbar .meter { width: 100%; max-width: 220px; margin-top: 4px; }
+.lockbar.ask { border-style: solid; border-color: var(--bleu); background: var(--bleu-soft); }
+.lockbar.done { justify-content: flex-start; border-style: solid; border-color: var(--ok); background: var(--ok-soft); }
+.lk-ic { font-size: 24px; }
+.lock-btn { background: var(--ink); color: var(--bg); gap: 6px; }
+.picker.is-locked .face, .picker.is-locked .pill { cursor: default; }
+.picker.is-locked .face:not([aria-pressed="true"]), .picker.is-locked .pill:not([aria-pressed="true"]) { opacity: .4; }
+@media (max-width: 520px) { .lockbar .btn { width: 100%; } }

@@ -38,7 +38,7 @@ export function PariCard({ pari, ctx, now, label, mine }: {
 
       {!closed ? (
         <>
-          <PariPicker pari={pari} candidates={ctx.candidates} initial={mine ? { reponse: mine.reponse, updated_at: mine.updated_at } : null} leagueId={ctx.league.id} />
+          <PariPicker pari={pari} candidates={ctx.candidates} initial={mine ? { reponse: mine.reponse, verrouille_le: mine.verrouille_le } : null} leagueId={ctx.league.id} />
           <p className="hint">
             {bettors.size}/{ctx.members.length} pote{ctx.members.length > 1 ? "s ont" : " a"} parié · clôture {fmtDateTime(pari.cloture)}
           </p>
@@ -51,7 +51,7 @@ export function PariCard({ pari, ctx, now, label, mine }: {
               <span>{verdict.detail}</span>
               {score && mine && (
                 <span className="mono">
-                  +{fmtPts(score.points)} pts <small className="hint">(justesse {Math.round(score.justesse * 100)} % × précocité {Math.round(score.precocite * 100)} %)</small>
+                  +{fmtPts(score.points)} pts <small className="hint">(justesse {Math.round(score.justesse * 100)} % × {mine.verrouille_le ? `cadenas ${Math.round(score.precocite * 100)} %` : "pas verrouillé 50 %"})</small>
                 </span>
               )}
             </div>

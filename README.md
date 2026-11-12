@@ -10,7 +10,7 @@ Le jeu de pronostics entre potes pour la présidentielle 2027, façon MPG.
 - **Comptes** : lien magique par e-mail, profil avec pseudo, nom d'équipe, couleur et avatar.
 - **Ligues** : création, code d'invitation à 6 caractères ou lien `/rejoindre/CODE`, un admin par ligue.
 - **Prono final** : qualifiés, vainqueur, scores du 1er tour, capitaine (×2), surprise, participation. On peut le modifier jusqu'à la clôture. Les pronos des autres restent cachés jusque-là, **par la RLS côté serveur**.
-- **Paris de la saison** : 14 paris communs à toutes les ligues (sondages, 500 parrainages, 1er et 2nd tour). Ils se tranchent tout seuls à partir des sondages, des parrainages et des résultats officiels. Un pari vaut 100 % à l'ouverture et 80 % à la clôture. Ceux des potes se dévoilent à la clôture.
+- **Paris de la saison** : 14 paris communs à toutes les ligues (sondages, 500 parrainages, 1er et 2nd tour). Ils se tranchent tout seuls à partir des sondages, des parrainages et des résultats officiels. Le joueur peut verrouiller son pari : verrouillé tôt, il vaut 100 %, jamais verrouillé, 50 %. Ceux des potes se dévoilent à la clôture.
 - **Quiz « Qui a dit ? »** : chaque semaine, 10 citations à attribuer au bon candidat. La 1re réponse est définitive, la correction tombe aussitôt et la bonne réponse reste illisible en base tant qu'on n'a pas répondu. Grille à partager, série de semaines jouées.
 - **Classement** : prono + paris + quiz, part du score parfait déjà tranché, détail par joueur. Animation « A voté ! » à l'enregistrement du prono.
 - **Sondages** : moyenne de la semaine, évolution par rapport au relevé précédent, historique.
@@ -23,7 +23,7 @@ Le jeu de pronostics entre potes pour la présidentielle 2027, façon MPG.
 ### 1. Supabase
 
 1. Crée un projet dans la région **Europe** (Frankfurt ou Paris).
-2. Va dans **SQL Editor**, colle le contenu de `supabase/migrations/20261109000000_init.sql`, puis clique sur **Run**. Fais pareil, dans l'ordre, avec les migrations suivantes du dossier (`20261110000000_duels_portraits.sql` : portraits, Ruffin, Lalanne et classement par duels ; `20261112000000_paris_quiz.sql` : paris, parrainages et quiz ; `20261112010000_profils_manquants.sql` ; `20261113000000_verrou_campagne.sql` : dates de verrouillage). Le script crée les tables, la RLS, les fonctions, les 15 candidats et le sondage du 9 novembre 2026.
+2. Va dans **SQL Editor**, colle le contenu de `supabase/migrations/20261109000000_init.sql`, puis clique sur **Run**. Fais pareil, dans l'ordre, avec les migrations suivantes du dossier (`20261110000000_duels_portraits.sql` : portraits, Ruffin, Lalanne et classement par duels ; `20261112000000_paris_quiz.sql` : paris, parrainages et quiz ; `20261112010000_profils_manquants.sql` ; `20261113000000_verrou_campagne.sql` : dates de verrouillage ; `20261114000000_riner_durif.sql` ; `20261114010000_cadenas.sql` : cadenas des paris). Le script crée les tables, la RLS, les fonctions, les 15 candidats et le sondage du 9 novembre 2026.
 3. Récupère dans **Settings → API** l'URL du projet et la clé `anon`. Ne partage jamais la clé `service_role`.
 4. Dans **Authentication → URL Configuration**, renseigne :
    - Site URL : `https://ton-domaine.fr`
@@ -95,7 +95,7 @@ La saison vaut environ 1000 pts : prono final 400 (40 %), paris 350 (35 %), quiz
 | Participation | 30 − 6 × écart (min. 0) |
 | Surprise (le mieux classé hors `lepen`, `melenchon`, `philippe` et `glucksmann`) | 30 |
 
-Chaque pari vaut 25 pts × justesse × précocité. Pour un pari à plusieurs candidats, la justesse est la part des bons trouvés moins la part des mauvais cochés (min. 0). La précocité va de 1 à l'ouverture à 0,8 à la clôture. Un pari tranché avant sa clôture est annulé. Verrouillages : sondages le 31 décembre, parrainages le 31 janvier, scrutin au début de la campagne officielle (5 avril 2027) ; le prono final reste ouvert jusqu'au 17 avril.
+Chaque pari vaut 25 pts × justesse × précocité. Pour un pari à plusieurs candidats, la justesse est la part des bons trouvés moins la part des mauvais cochés (min. 0). Le cadenas : le joueur verrouille son pari quand il veut (heure fixée par la base) ; la précocité va de 1 à l'ouverture à 0,5 à la clôture, et un pari jamais verrouillé compte 0,5. Un pari tranché avant sa clôture est annulé. Verrouillages : sondages le 31 décembre, parrainages le 31 janvier, scrutin au début de la campagne officielle (5 avril 2027) ; le prono final reste ouvert jusqu'au 17 avril.
 
 Les calculs sont dans `lib/scoring.ts`, `lib/paris.ts` et `lib/quiz.ts`, les badges dans `lib/badges.ts`. Les dates des paris sont aussi dans la table `paris` : un test vérifie que les deux restent alignées.
 

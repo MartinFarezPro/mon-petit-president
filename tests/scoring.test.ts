@@ -79,10 +79,10 @@ describe("classement de la saison", () => {
   const faits = { polls, parrainages: [], results: null, candidates: ["lepen", "ruffin", "philippe", "melenchon"].map(cand) };
   const tot = "2026-11-12T00:00:00+01:00";
   const parisReponses: PariReponse[] = [
-    { user_id: "u1", pari_id: "sondage_progression", reponse: ["ruffin"], updated_at: tot },
-    { user_id: "u2", pari_id: "sondage_progression", reponse: ["ruffin"], updated_at: "2026-12-31T23:59:59+01:00" },
-    { user_id: "u2", pari_id: "sondage_podium", reponse: ["philippe"], updated_at: tot },
-    { user_id: "u3", pari_id: "sondage_podium", reponse: ["lepen"], updated_at: tot },
+    { user_id: "u1", pari_id: "sondage_progression", reponse: ["ruffin"], updated_at: tot, verrouille_le: tot },
+    { user_id: "u2", pari_id: "sondage_progression", reponse: ["ruffin"], updated_at: tot, verrouille_le: null }, // jamais verrouillé
+    { user_id: "u2", pari_id: "sondage_podium", reponse: ["philippe"], updated_at: tot, verrouille_le: tot },
+    { user_id: "u3", pari_id: "sondage_podium", reponse: ["lepen"], updated_at: tot, verrouille_le: tot },
   ];
   const quizzes: Quiz[] = [
     { id: "z1", titre: "S1", ouverture: "2027-02-20T08:00:00+01:00", cloture: "2027-02-27T23:59:00+01:00" },
@@ -101,11 +101,11 @@ describe("classement de la saison", () => {
     quizzes, quizQuestions, quizReponses, corrections, now,
   };
 
-  it("paris tranchés (avec précocité) + quiz clos uniquement", () => {
+  it("paris tranchés (avec cadenas) + quiz clos uniquement", () => {
     const st = computeStandings(input);
-    // u2 : progression à la dernière seconde (25 × 80 %) + podium (25) + 1 bonne réponse au quiz clos
-    expect(st.map((s) => [s.userId, s.paris, s.quiz, s.total])).toEqual([["u2", 45, 1, 46], ["u1", 25, 2, 27], ["u3", 0, 0, 0]]);
-    expect(st[0].parisDetail).toEqual({ sondage_progression: 20, sondage_podium: 25 });
+    // u2 : progression jamais verrouillée (25 × 50 %) + podium verrouillé dès l'ouverture (25) + 1 bonne réponse au quiz clos
+    expect(st.map((s) => [s.userId, s.paris, s.quiz, s.total])).toEqual([["u2", 37.5, 1, 38.5], ["u1", 25, 2, 27], ["u3", 0, 0, 0]]);
+    expect(st[0].parisDetail).toEqual({ sondage_progression: 12.5, sondage_podium: 25 });
   });
 
   it("score parfait à ce jour", () => {

@@ -16,6 +16,7 @@ export default async function Paris({ params }: { params: Promise<{ id: string }
 
   const open = PARIS.filter((p) => now < new Date(p.cloture));
   const placed = open.filter((p) => mine(p)).length;
+  const lockedN = open.filter((p) => mine(p)?.verrouille_le).length;
   const next = open.filter((p) => !mine(p)).sort((a, b) => +new Date(a.cloture) - +new Date(b.cloture))[0];
   const myPoints = PARIS.reduce((a, p) => a + (scorePari(p, trancher(p, ctx.faits, now), mine(p), now)?.points ?? 0), 0);
   const counted = PARIS.filter((p) => scorePari(p, trancher(p, ctx.faits, now), undefined, now)).length;
@@ -25,15 +26,15 @@ export default async function Paris({ params }: { params: Promise<{ id: string }
       <section className="card paris-hero">
         <div>
           <div className="eyebrow">Paris de la saison · {PARIS.length} paris · {PARIS_TOTAL} pts</div>
-          <h2 style={{ fontSize: 26, marginTop: 6 }}>Parie tôt, ça rapporte plus.</h2>
+          <h2 style={{ fontSize: 26, marginTop: 6 }}>Verrouille tôt, ça rapporte plus.</h2>
           <p className="hint" style={{ marginTop: 6 }}>
-            Chaque pari vaut {POINTS_PARI} pts. Il vaut 100 % à l&apos;ouverture et descend jusqu&apos;à 80 % à la clôture : changer
-            d&apos;avis remet le compteur à l&apos;heure. Tout se tranche tout seul avec les chiffres officiels, et les paris de tes potes
-            se dévoilent à la clôture.
+            Chaque pari vaut {POINTS_PARI} pts s&apos;il est bon. Tu peux le changer autant que tu veux, jusqu&apos;à ce que tu poses le
+            cadenas 🔒 : verrouillé aujourd&apos;hui, il vaut presque 100 % ; pas verrouillé du tout, seulement 50 %. Tout se tranche
+            tout seul avec les chiffres officiels, et les paris de tes potes se dévoilent à la clôture.
           </p>
         </div>
         <div className="paris-stats">
-          <div><b>{placed}/{open.length}</b><small>paris ouverts placés</small></div>
+          <div><b>{placed}/{open.length}</b><small>paris placés · {lockedN} 🔒</small></div>
           <div><b>{fmtPts(Math.round(myPoints * 10) / 10)}</b><small>pts gagnés sur {counted * POINTS_PARI}</small></div>
           {next && <div><b>{countdown(new Date(next.cloture), now) ?? "–"}</b><small>avant la prochaine clôture</small></div>}
         </div>

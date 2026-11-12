@@ -71,14 +71,14 @@ describe("justesse", () => {
   });
 });
 
-describe("précocité", () => {
+describe("cadenas", () => {
   const p = P.troisieme;
-  it("100 % à l'ouverture, 80 % à la clôture, linéaire entre les deux", () => {
+  it("verrouillé à l'ouverture 100 %, à la clôture 50 %, linéaire entre les deux", () => {
     expect(precocite(p, p.ouverture)).toBe(1);
-    expect(precocite(p, p.cloture)).toBeCloseTo(0.8);
+    expect(precocite(p, p.cloture)).toBeCloseTo(0.5);
     expect(precocite(p, "2020-01-01")).toBe(1);
     const mid = new Date((+new Date(p.ouverture) + +new Date(p.cloture)) / 2);
-    expect(precocite(p, mid)).toBeCloseTo(0.9);
+    expect(precocite(p, mid)).toBeCloseTo(0.75);
   });
 });
 
@@ -141,11 +141,12 @@ describe("résolution automatique", () => {
 
 describe("points", () => {
   const f: Faits = { ...base, results: t1 };
-  it("rien avant la clôture, 0 sans pari, 25 × justesse × précocité sinon", () => {
+  it("rien avant la clôture, 0 sans pari, 25 × justesse × cadenas sinon (50 % si jamais verrouillé)", () => {
     const v = trancher(P.troisieme, f, after);
-    expect(scorePari(P.troisieme, v, { reponse: ["melenchon"], updated_at: P.troisieme.ouverture }, new Date("2027-04-01"))).toBeNull();
+    expect(scorePari(P.troisieme, v, { reponse: ["melenchon"], verrouille_le: P.troisieme.ouverture }, new Date("2027-04-01"))).toBeNull();
     expect(scorePari(P.troisieme, v, undefined, after)).toEqual({ points: 0, justesse: 0, precocite: 0 });
-    expect(scorePari(P.troisieme, v, { reponse: ["melenchon"], updated_at: P.troisieme.ouverture }, after)!.points).toBe(25);
-    expect(scorePari(P.troisieme, v, { reponse: ["melenchon"], updated_at: P.troisieme.cloture }, after)!.points).toBe(20);
+    expect(scorePari(P.troisieme, v, { reponse: ["melenchon"], verrouille_le: P.troisieme.ouverture }, after)!.points).toBe(25);
+    expect(scorePari(P.troisieme, v, { reponse: ["melenchon"], verrouille_le: null }, after)!.points).toBe(12.5);
+    expect(scorePari(P.troisieme, v, { reponse: ["lepen"], verrouille_le: P.troisieme.ouverture }, after)!.points).toBe(0);
   });
 });

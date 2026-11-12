@@ -1,6 +1,6 @@
 import { PREMIER_TOUR } from "./constants";
 import { shortName } from "./format";
-import type { Candidate, Parrainages, Poll, Results } from "./types";
+import type { Candidate, PariReponse, Parrainages, Poll, Results } from "./types";
 
 /**
  * Paris de la saison. Chacun se tranche tout seul à partir des données officielles déjà en base
@@ -10,8 +10,11 @@ import type { Candidate, Parrainages, Poll, Results } from "./types";
 
 /** Points d'un pari parfait, pris dès l'ouverture. 14 paris × 25 = 350 pts. */
 export const POINTS_PARI = 25;
-/** Un pari pris à la dernière minute vaut 80 % : la précocité monte linéairement jusqu'à 100 %. */
-export const PRECOCITE_MIN = 0.8;
+/**
+ * Le cadenas : un pari verrouillé à l'ouverture vaut 100 %, puis de moins en moins chaque jour,
+ * jusqu'à 50 % à la clôture. Un pari jamais verrouillé est figé à la clôture, donc à 50 %.
+ */
+export const PRECOCITE_MIN = 0.5;
 /** Date limite de dépôt des parrainages. */
 export const PARRAINAGES_FIN = "2027-03-12";
 export const SEUIL_PARRAINAGES = 500;
@@ -328,7 +331,7 @@ export function justesse(pari: Pari, v: Verdict, reponse: string[]): number {
   return Math.max(0, partBons - partMauvais);
 }
 
-/** Coefficient de précocité : 100 % à l'ouverture, 80 % à la dernière seconde. */
+/** Coefficient de précocité selon l'heure du verrou : 100 % à l'ouverture, 50 % à la clôture. */
 export function precocite(pari: Pari, at: string | Date): number {
   const o = +new Date(pari.ouverture), c = +new Date(pari.cloture), t = +new Date(at);
   const left = Math.min(1, Math.max(0, (c - t) / (c - o)));
@@ -338,11 +341,11 @@ export function precocite(pari: Pari, at: string | Date): number {
 export type PariScore = { points: number; justesse: number; precocite: number };
 
 /** Points d'un pari, ou null s'il ne compte pas (pas clos, pas tranché, ou annulé). */
-export function scorePari(pari: Pari, v: Verdict | null, rep: { reponse: string[]; updated_at: string } | undefined, now = new Date()): PariScore | null {
+export function scorePari(pari: Pari, v: Verdict | null, rep: Pick<PariReponse, "reponse" | "verrouille_le"> | undefined, now = new Date()): PariScore | null {
   if (!compte(pari, v, now)) return null;
   if (!rep) return { points: 0, justesse: 0, precocite: 0 };
   const j = justesse(pari, v!, rep.reponse);
-  const p = precocite(pari, rep.updated_at);
+  const p = precocite(pari, rep.verrouille_le ?? pari.cloture);
   return { points: Math.round(POINTS_PARI * j * p * 10) / 10, justesse: j, precocite: p };
 }
 
