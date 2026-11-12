@@ -1,22 +1,30 @@
-/* Mon Petit Président — design « bulletin de vote » bleu / blanc / rouge */
+/* Mon Petit Président — design « affiche électorale » bleu / blanc / rouge
+   Thème clair (fond blanc) et sombre (bleu marine). Par défaut : réglage du téléphone ; data-theme force l'un ou l'autre. */
 :root {
-  --bg: #eef1f7; --paper: #ffffff; --ink: #141a33; --muted: #5b6380; --line: #d7dcea;
-  --bleu: #1f3fbf; --bleu-soft: #e4e9fb; --rouge: #d5233b; --rouge-soft: #fde6e9;
-  --ok: #1d8a52; --ok-soft: #e1f4ea; --warn: #a86a00; --warn-soft: #fbf0d9;
-  --on-accent: #ffffff;
-  --display: "Bricolage Grotesque", "Arial Black", system-ui, sans-serif;
-  --body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --bg: #ffffff; --paper: #f5f7fc; --ink: #0b1736; --muted: #5a6787; --line: #e1e6f1;
+  --bleu: #1f3fbf; --bleu-soft: #e6ecff; --rouge: #d5233b; --rouge-soft: #fde7ea;
+  --ok: #157a47; --ok-soft: #e0f3e8; --warn: #9a6200; --warn-soft: #fbf0d9;
+  --on-accent: #ffffff; --shadow: 0 1px 2px rgba(11, 23, 54, .06), 0 4px 16px rgba(11, 23, 54, .05);
+  --display: "Archivo Variable", "Arial Black", system-ui, sans-serif;
+  --body: "Archivo Variable", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0d1122; --paper: #161c33; --ink: #e9ecf7; --muted: #9aa3c4; --line: #2a3255;
-    --bleu: #8ea6ff; --bleu-soft: #1e2852; --rouge: #ff6b7d; --rouge-soft: #3a1922;
-    --ok: #5fd394; --ok-soft: #14321f; --warn: #f0b54a; --warn-soft: #33270f;
-    --on-accent: #0d1122;
+  :root:not([data-theme="light"]) {
+    --bg: #0a1631; --paper: #11224a; --ink: #eef2ff; --muted: #9fb0d8; --line: #233a70;
+    --bleu: #8fb0ff; --bleu-soft: #1b3270; --rouge: #ff5d70; --rouge-soft: #40182f;
+    --ok: #52d68f; --ok-soft: #123d35; --warn: #ffc451; --warn-soft: #3b3122;
+    --on-accent: #0a1631; --shadow: 0 1px 2px rgba(0, 0, 0, .25), 0 6px 20px rgba(0, 0, 0, .2);
     color-scheme: dark;
   }
+}
+:root[data-theme="dark"] {
+  --bg: #0a1631; --paper: #11224a; --ink: #eef2ff; --muted: #9fb0d8; --line: #233a70;
+  --bleu: #8fb0ff; --bleu-soft: #1b3270; --rouge: #ff5d70; --rouge-soft: #40182f;
+  --ok: #52d68f; --ok-soft: #123d35; --warn: #ffc451; --warn-soft: #3b3122;
+  --on-accent: #0a1631; --shadow: 0 1px 2px rgba(0, 0, 0, .25), 0 6px 20px rgba(0, 0, 0, .2);
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -48,19 +56,13 @@ p { margin: 0; }
 .eyebrow { font: 600 12px/1 var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .hero h1 { font-size: clamp(32px, 7vw, 54px); font-weight: 800; letter-spacing: -.02em; margin-top: 8px; }
 .hero h1 em { font-style: normal; color: var(--rouge); }
-.countdown { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; min-width: 190px; }
-.countdown b { font: 700 28px/1 var(--mono); color: var(--bleu); font-variant-numeric: tabular-nums; }
-.countdown small { display: block; color: var(--muted); font-size: 12px; margin-top: 4px; }
 .dates { display: flex; gap: 8px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
 .dates span { background: var(--paper); border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; }
 
 /* ─── Onglets ─── */
-.tabs { display: flex; gap: 2px; border-bottom: 2px solid var(--line); overflow-x: auto; scrollbar-width: none; }
-.tabs a { font: 600 14px var(--body); color: var(--muted); padding: 10px 12px; border-bottom: 3px solid transparent; margin-bottom: -2px; white-space: nowrap; text-decoration: none; }
-.tabs a[aria-current="page"] { color: var(--ink); border-color: var(--rouge); }
 
 /* ─── Cartes ─── */
-.card { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 20px; min-width: 0; }
+.card { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 20px; min-width: 0; box-shadow: var(--shadow); }
 .card.tight { padding: 14px 16px; }
 .section-h { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
 .section-h h2 { font-size: 22px; }
@@ -425,3 +427,88 @@ details summary { cursor: pointer; font-weight: 600; }
 .verrou b { font-family: var(--display); font-size: 16px; }
 .verrou-cd { font: 700 22px var(--mono); color: var(--rouge); white-space: nowrap; }
 @media (max-width: 520px) { .verrou { grid-template-columns: auto 1fr; } .verrou-cd { grid-column: 2; } }
+
+/* ─── Typo : titres larges (affiche), chiffres condensés (tableau des scores) ─── */
+h1, h2, h3, .brand, .rank, .empty b, .modecard b, .verdict b, .quote.big::before, .quiz-verdict b, .quiz-score,
+.avote-title, .verrou b, .phase-h { font-weight: 800; font-variation-settings: "wdth" 118; letter-spacing: -.01em; }
+h1 { letter-spacing: -.025em; }
+td.num, th.num, .pts, .numfield, .countdown, .paris-stats b, .verrou-cd, .quiz-score, .rank, .rk, .code, .tab-badge, .valeur b, .saison-legend b {
+  font-variant-numeric: tabular-nums lining-nums; }
+td.num { font-size: 17px; font-weight: 600; }
+.pts { font-size: 14px; }
+.rank { font-family: var(--mono); font-size: 26px; font-variation-settings: normal; }
+.paris-stats b { font-size: 28px; }
+.verrou-cd { font-size: 28px; }
+.quiz-score b { font-family: var(--mono); font-size: 110px; }
+.code { font-size: 34px; letter-spacing: .12em; }
+.theme-toggle { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); background: var(--paper); color: var(--ink);
+  font-size: 16px; line-height: 1; cursor: pointer; display: grid; place-items: center; }
+.theme-toggle:hover { border-color: var(--bleu); }
+
+/* ─── Compte à rebours ─── */
+.countdown { display: grid; gap: 6px; justify-items: start; }
+.cd-tiles { display: flex; gap: 6px; }
+.cd-tile { display: grid; justify-items: center; min-width: 58px; padding: 8px 6px 6px; border-radius: 10px;
+  background: var(--paper); border: 1px solid var(--line); box-shadow: var(--shadow); }
+.cd-tile b { font: 700 34px/1 var(--mono); color: var(--ink); font-variant-numeric: tabular-nums lining-nums; }
+.cd-tile.j b { color: var(--bleu); }
+.cd-tile.s b { color: var(--rouge); }
+.cd-tile small { font: 600 10px var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-top: 3px; }
+.cd-label { color: var(--muted); font-size: 12px; }
+@media (max-width: 520px) { .cd-tile { min-width: 0; flex: 1; } .cd-tiles { width: 100%; } .countdown { width: 100%; } .cd-tile b { font-size: 30px; } }
+
+/* ─── Navigation de la ligue ─── */
+.mainnav { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 5px; border-radius: 14px; background: var(--paper);
+  border: 1px solid var(--line); box-shadow: var(--shadow); }
+.mainnav a { position: relative; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 8px; border-radius: 10px;
+  text-decoration: none; color: var(--muted); font: 700 15px var(--body); }
+.mainnav a:hover { color: var(--ink); background: var(--bg); }
+.mainnav a[aria-current="page"] { background: var(--bleu); color: var(--on-accent); }
+.mn-ic { font-size: 18px; line-height: 1; }
+.mainnav .tab-badge { margin-left: 0; }
+.subnav { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: -8px; font-size: 13px; }
+.subnav a { color: var(--muted); text-decoration: none; font-weight: 600; padding: 2px 0; border-bottom: 2px solid transparent; }
+.subnav a:hover { color: var(--ink); }
+.subnav a[aria-current="page"] { color: var(--ink); border-color: var(--rouge); }
+@media (max-width: 640px) {
+  .league { padding-bottom: 76px; }
+  .mainnav { position: fixed; z-index: 50; left: 0; right: 0; bottom: 0; border-radius: 16px 16px 0 0; border-bottom: 0; gap: 2px;
+    padding: 6px 8px max(8px, env(safe-area-inset-bottom)); box-shadow: 0 -4px 24px rgba(11, 23, 54, .14); }
+  .mainnav a { flex-direction: column; gap: 2px; padding: 6px 2px; font-size: 11.5px; }
+  .mn-ic { font-size: 21px; }
+  .mainnav .tab-badge { position: absolute; top: 2px; left: calc(50% + 8px); }
+  .subnav { margin-top: -6px; }
+}
+
+/* ─── Appel à déposer son prono ─── */
+.prono-cta { position: relative; overflow: hidden; display: grid; grid-template-columns: auto 1fr auto; gap: 16px; align-items: center;
+  padding: 18px 20px; border-radius: 16px; color: #fff;
+  background: linear-gradient(110deg, #1f3fbf 0%, #2a4fd6 45%, #d5233b 100%); box-shadow: 0 8px 28px rgba(31, 63, 191, .3); }
+.prono-cta::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, .18) 50%, transparent 70%);
+  transform: translateX(-100%); pointer-events: none; }
+.pc-urne { font-size: 40px; line-height: 1; }
+.pc-txt { display: grid; gap: 4px; min-width: 0; }
+.pc-txt b { font: 800 20px/1.15 var(--display); font-variation-settings: "wdth" 115; }
+.pc-txt span { font-size: 14px; opacity: .92; }
+.pc-btn { position: relative; z-index: 1; background: #fff; color: #1f3fbf; font: 800 16px var(--body); text-decoration: none; padding: 14px 20px;
+  border-radius: 12px; white-space: nowrap; box-shadow: 0 4px 14px rgba(0, 0, 0, .18); }
+.pc-btn:hover { transform: translateY(-1px); }
+@media (max-width: 640px) {
+  .prono-cta { grid-template-columns: auto 1fr; padding: 16px; }
+  .pc-btn { grid-column: 1 / -1; text-align: center; font-size: 17px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .prono-cta::after { animation: shine 3.2s ease-in-out 1s infinite; }
+  .pc-btn { animation: nudge 3.2s ease-in-out 1.6s infinite; }
+}
+@keyframes shine { 0% { transform: translateX(-100%); } 40%, 100% { transform: translateX(100%); } }
+@keyframes nudge { 0%, 88%, 100% { transform: none; } 92% { transform: scale(1.05); } 96% { transform: scale(.98); } }
+.show-sm { display: none; }
+.subnav a { display: inline-flex; align-items: center; gap: 5px; }
+.topbar { flex-wrap: nowrap; }
+.brand span:last-child { white-space: nowrap; }
+@media (max-width: 520px) {
+  .show-sm { display: inline; }
+  .brand { font-size: 16px; gap: 8px; }
+  .topbar .linkbtn { font-size: 16px; padding: 6px 4px; }
+}

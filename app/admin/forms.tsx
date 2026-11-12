@@ -147,7 +147,7 @@ export function QuizImportForm({ example }: { example: string }) {
   return (
     <form action={action} className="stack">
       <textarea name="json" value={json} onChange={(e) => setJson(e.target.value)} rows={12} spellCheck={false}
-        className="mono" style={{ fontSize: 12 }} placeholder={example} required />
+        style={{ fontSize: 12, fontFamily: "ui-monospace, Menlo, monospace" }} placeholder={example} required />
       <div className="row">
         <SubmitButton>Publier le quiz</SubmitButton>
         <button type="button" className="btn ghost small" onClick={() => setJson(example)}>Charger le modèle</button>

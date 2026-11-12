@@ -1,13 +1,10 @@
 import type { Metadata, Viewport } from "next";
 // Polices auto-hébergées (pas d'appel à Google Fonts au build ni chez le joueur)
-import "@fontsource/bricolage-grotesque/latin-500.css";
-import "@fontsource/bricolage-grotesque/latin-800.css";
-import "@fontsource/public-sans/latin-400.css";
-import "@fontsource/public-sans/latin-500.css";
-import "@fontsource/public-sans/latin-600.css";
-import "@fontsource/public-sans/latin-700.css";
-import "@fontsource/jetbrains-mono/latin-500.css";
-import "@fontsource/jetbrains-mono/latin-700.css";
+import "@fontsource-variable/archivo/wdth.css";
+import "@fontsource/barlow-condensed/latin-500.css";
+import "@fontsource/barlow-condensed/latin-600.css";
+import "@fontsource/barlow-condensed/latin-700.css";
+import "@fontsource/barlow-condensed/latin-800.css";
 import { RegisterSW } from "@/components/RegisterSW";
 import "./globals.css";
 
@@ -27,14 +24,20 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#eef1f7" },
-    { media: "(prefers-color-scheme: dark)", color: "#0d1122" },
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a1631" },
   ],
 };
 
+const THEME_SCRIPT = `try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr">
+    <html lang="fr" suppressHydrationWarning>
+      <head>
+        {/* Applique le thème choisi avant l'affichage (évite un flash de la mauvaise couleur) */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body>
         {children}
         <RegisterSW />

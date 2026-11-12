@@ -36,12 +36,9 @@ export default async function Classement({ params }: { params: Promise<{ id: str
     <div className="stack">
       {ctx.members.length < 2 && ctx.isAdmin && (
         <p className="notice info">
-          Tu es seul·e pour l&apos;instant : partage le code <b className="mono">{ctx.league.code_invitation}</b> depuis l&apos;onglet{" "}
-          <Link href={`${path}/admin`}>Admin</Link>.
+          Tu es seul·e pour l&apos;instant : partage le code <b className="mono">{ctx.league.code_invitation}</b> depuis{" "}
+          <Link href={`${path}/admin`}>Inviter & gérer</Link>.
         </p>
-      )}
-      {!deposited.has(ctx.userId) && !locked && (
-        <p className="notice warn">Tu n&apos;as pas encore déposé ton prono final. <Link href={`${path}/prono`}>Je m&apos;y colle →</Link></p>
       )}
 
       <section className="card stack saison">

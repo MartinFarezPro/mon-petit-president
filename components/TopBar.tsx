@@ -2,6 +2,7 @@ import Link from "next/link";
 import { signOut } from "@/app/actions/auth";
 import type { Profile } from "@/lib/types";
 import { Avatar } from "./Avatar";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function TopBar({ profile }: { profile: Profile | null }) {
   return (
@@ -12,17 +13,23 @@ export function TopBar({ profile }: { profile: Profile | null }) {
       </Link>
       {profile ? (
         <div className="row" style={{ gap: 6 }}>
+          <ThemeToggle />
           {profile.is_superadmin && <Link href="/admin" className="linkbtn">Admin</Link>}
           <Link href="/profil" className="row" style={{ gap: 6, textDecoration: "none", color: "var(--ink)" }} title="Mon profil">
             <Avatar p={profile} size={28} />
             <span className="hide-sm" style={{ fontWeight: 600, fontSize: 14 }}>{profile.pseudo}</span>
           </Link>
           <form action={signOut}>
-            <button className="linkbtn" type="submit">Déconnexion</button>
+            <button className="linkbtn" type="submit" aria-label="Déconnexion" title="Déconnexion">
+              <span className="hide-sm">Déconnexion</span><span className="show-sm" aria-hidden="true">⏻</span>
+            </button>
           </form>
         </div>
       ) : (
-        <Link href="/connexion" className="btn small">Se connecter</Link>
+        <div className="row" style={{ gap: 6 }}>
+          <ThemeToggle />
+          <Link href="/connexion" className="btn small">Se connecter</Link>
+        </div>
       )}
     </div>
   );

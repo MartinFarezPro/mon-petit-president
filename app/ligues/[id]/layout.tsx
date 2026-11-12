@@ -1,7 +1,8 @@
 import { Countdown } from "@/components/Countdown";
 import { LeagueTabs } from "@/components/LeagueTabs";
+import { PronoCta } from "@/components/PronoCta";
 import { TopBar } from "@/components/TopBar";
-import { PRONO_LOCK } from "@/lib/constants";
+import { isLocked, PRONO_LOCK } from "@/lib/constants";
 import { loadLeague } from "@/lib/data";
 import { PARIS } from "@/lib/paris";
 import { quizOuvert } from "@/lib/quiz";
@@ -19,13 +20,14 @@ export default async function LeagueLayout({ children, params }: { children: Rea
   // Paris ouverts pas encore placés, citations du quiz en cours sans réponse
   const parisTodo = PARIS.filter((p) => now >= new Date(p.ouverture) && now < new Date(p.cloture)
     && !ctx.parisReponses.some((r) => r.user_id === ctx.userId && r.pari_id === p.id)).length;
+  const pronoTodo = !isLocked(now) && !ctx.picks.some((p) => p.user_id === ctx.userId);
   const current = ctx.quizzes.find((z) => quizOuvert(z, now));
   const quizTodo = current
     ? ctx.quizQuestions.filter((q) => q.quiz_id === current.id && !ctx.quizReponses.some((r) => r.question_id === q.id && r.user_id === ctx.userId)).length
     : 0;
 
   return (
-    <main className="wrap">
+    <main className="wrap league">
       <TopBar profile={ctx.me} />
       <header className="hero">
         <div>
@@ -38,7 +40,8 @@ export default async function LeagueLayout({ children, params }: { children: Rea
         </div>
         <Countdown target={PRONO_LOCK.toISOString()} label="avant la clôture du prono final (17 avril, 23 h 59)" doneLabel="les pronos sont figés" />
       </header>
-      <LeagueTabs base={`/ligues/${id}`} isAdmin={ctx.isAdmin} parisTodo={parisTodo} quizTodo={quizTodo} />
+      <LeagueTabs base={`/ligues/${id}`} isAdmin={ctx.isAdmin} parisTodo={parisTodo} quizTodo={quizTodo} pronoTodo={pronoTodo} />
+      {pronoTodo && <PronoCta href={`/ligues/${id}/prono`} />}
       {children}
       <footer className="foot">Pour le fun, entre amis · Sondages mis à jour chaque lundi.</footer>
     </main>
