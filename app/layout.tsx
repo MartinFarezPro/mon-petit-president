@@ -1,6 +1,11 @@
 import type { Metadata, Viewport } from "next";
 // Polices auto-hébergées (pas d'appel à Google Fonts au build ni chez le joueur)
-import "@fontsource-variable/archivo/wdth.css";
+import "@fontsource/barlow/latin-400.css";
+import "@fontsource/barlow/latin-500.css";
+import "@fontsource/barlow/latin-600.css";
+import "@fontsource/barlow/latin-700.css";
+import "@fontsource/barlow-semi-condensed/latin-700.css";
+import "@fontsource/barlow-semi-condensed/latin-800.css";
 import "@fontsource/barlow-condensed/latin-500.css";
 import "@fontsource/barlow-condensed/latin-600.css";
 import "@fontsource/barlow-condensed/latin-700.css";
@@ -25,7 +30,7 @@ export const viewport: Viewport = {
   viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0a1631" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b1736" },
   ],
 };
 

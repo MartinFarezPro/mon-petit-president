@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { answerQuiz, quizDone } from "@/app/actions/quiz";
+import { Icon } from "@/components/Icon";
 import { Portrait } from "@/components/Portrait";
 import { fmtDate, shortName } from "@/lib/format";
 import type { Candidate, QuizQuestion } from "@/lib/types";
@@ -28,14 +29,21 @@ export function QuizPlayer({ titre, cloture, questions, candidates, initial, sha
 
   const bons = qs.filter((q) => done[q.id] && done[q.id].choix === done[q.id].bonne).length;
   const grid = qs.map((q) => (!done[q.id] ? "⬜" : done[q.id].choix === done[q.id].bonne ? "🟩" : "🟥")).join("");
+  const playing = started && idx < qs.length;
+  // Sur mobile, le quiz passe en plein écran : une citation par page, sans défilement derrière.
+  useEffect(() => {
+    if (!playing) return;
+    document.body.classList.add("quiz-on");
+    return () => document.body.classList.remove("quiz-on");
+  }, [playing]);
 
   if (!started) {
     return (
       <div className="quiz-start">
-        <div className="quiz-big" aria-hidden="true">🗣️</div>
+        <div className="quiz-big"><Icon name="bulle" size={56} /></div>
         <h2>Qui a dit ?</h2>
         <p className="hint">{qs.length} citations de la semaine · 1 pt par bonne réponse · ta 1re réponse est définitive.</p>
-        <button className="btn" onClick={() => setStarted(true)}>C&apos;est parti</button>
+        <button className="btn" onClick={() => setStarted(true)}>{Object.keys(done).length ? "Reprendre" : "C'est parti"}</button>
       </div>
     );
   }
@@ -83,6 +91,11 @@ export function QuizPlayer({ titre, cloture, questions, candidates, initial, sha
 
   return (
     <div className="quiz-play">
+      <div className="quiz-top">
+        <span className="quiz-count"><b>{idx + 1}</b>/{qs.length}</span>
+        <span className="quiz-top-t">Qui a dit ?</span>
+        <button type="button" className="quiz-close" onClick={() => setStarted(false)} aria-label="Mettre le quiz en pause">✕</button>
+      </div>
       <div className="quiz-dots" aria-label={`Citation ${idx + 1} sur ${qs.length}`}>
         {qs.map((x, i) => (
           <span key={x.id} className={!done[x.id] ? (i === idx ? "cur" : "") : done[x.id].choix === done[x.id].bonne ? "ok" : "ko"} />

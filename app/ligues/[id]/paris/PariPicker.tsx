@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { lockPari, savePari } from "@/app/actions/paris";
+import { Icon } from "@/components/Icon";
 import { Portrait } from "@/components/Portrait";
 import { fmtDateTime, shortName } from "@/lib/format";
 import { precocite, PRECOCITE_MIN, type Pari } from "@/lib/paris";
@@ -95,7 +96,7 @@ export function PariPicker({ pari, candidates, initial, leagueId, onSave = saveP
 
       {locked ? (
         <div className="lockbar done">
-          <span className="lk-ic" aria-hidden="true">🔒</span>
+          <span className="lk-ic"><Icon name="cadenas" size={26} /></span>
           <div>
             <b>Verrouillé : {summary}</b>
             <small>Le {fmtDateTime(locked)} · ton pari vaut <b>{pct(value!)}</b> s&apos;il est bon</small>
@@ -110,7 +111,7 @@ export function PariPicker({ pari, candidates, initial, leagueId, onSave = saveP
             <small>Tu ne pourras plus changer d&apos;avis. Ton pari vaudra {value != null ? pct(value) : "…"}.</small>
           </div>
           <div className="row" style={{ gap: 8 }}>
-            <button type="button" className="btn" onClick={lock} disabled={pending}>{pending ? "…" : "🔒 Oui, verrouiller"}</button>
+            <button type="button" className="btn" onClick={lock} disabled={pending}>{pending ? "…" : <><Icon name="cadenas" size={18} /> Oui, verrouiller</>}</button>
             <button type="button" className="btn ghost" onClick={() => setConfirm(false)} disabled={pending}>Annuler</button>
           </div>
         </div>
@@ -125,7 +126,7 @@ export function PariPicker({ pari, candidates, initial, leagueId, onSave = saveP
             {value != null && <span className="meter" aria-hidden="true"><span style={{ width: `${((value - PRECOCITE_MIN) / (1 - PRECOCITE_MIN)) * 100}%` }} /></span>}
           </div>
           <button type="button" className="btn lock-btn" onClick={() => setConfirm(true)} disabled={pending}>
-            🔒 Verrouiller{value != null ? ` (${pct(value)})` : ""}
+            <Icon name="cadenas" size={18} /> Verrouiller{value != null ? ` (${pct(value)})` : ""}
           </button>
         </div>
       )}

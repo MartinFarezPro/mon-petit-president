@@ -8,8 +8,11 @@ export function TopBar({ profile }: { profile: Profile | null }) {
   return (
     <div className="topbar">
       <Link href={profile ? "/ligues" : "/"} className="brand">
-        <span className="tricolore" style={{ width: 28 }} aria-hidden="true"><i /><i /><i /></span>
-        <span>Mon Petit <em>Président</em></span>
+        <span className="brand-flag" aria-hidden="true"><i /><i /><i /></span>
+        <span className="brand-txt">
+          <b>Mon petit<br />président</b>
+          <small>Présidentielle 2027 · entre amis</small>
+        </span>
       </Link>
       {profile ? (
         <div className="row" style={{ gap: 6 }}>
