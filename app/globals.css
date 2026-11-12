@@ -666,3 +666,21 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 0; 
 }
 .mes-ligues { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; text-decoration: none; }
 .eyebrow .switch { color: inherit; text-decoration: underline; text-underline-offset: 3px; text-transform: none; letter-spacing: 0; font-weight: 700; }
+
+/* ─── Mes ligues : les ligues d'abord ─── */
+.league-list { display: grid; gap: 12px; }
+.league-card { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 22px; text-decoration: none; color: var(--ink);
+  background: var(--paper); border: 1px solid var(--line); border-left: 6px solid var(--bleu); border-radius: 14px; box-shadow: var(--shadow);
+  transition: border-color .15s ease, transform .15s ease; }
+.league-card:hover { border-color: var(--bleu); transform: translateY(-1px); }
+.lc-main { display: grid; gap: 6px; justify-items: start; min-width: 0; }
+.lc-name { font: 800 clamp(24px, 5vw, 32px)/1.05 var(--display); }
+.lc-meta { color: var(--muted); font-size: 14px; }
+.lc-go { flex: none; }
+.more-leagues { border: 1px dashed var(--line); border-radius: 14px; padding: 14px 18px; }
+.more-leagues summary { color: var(--bleu); font-weight: 700; list-style: none; }
+.more-leagues summary::-webkit-details-marker { display: none; }
+@media (max-width: 520px) {
+  .league-card { flex-direction: column; align-items: stretch; padding: 18px; }
+  .lc-go { text-align: center; }
+}
