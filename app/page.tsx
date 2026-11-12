@@ -26,9 +26,9 @@ export default async function Home() {
       <section className="card stack">
         <h2 style={{ fontSize: 24 }}>Comme MPG, mais pour l&apos;Élysée</h2>
         <div className="grid3">
-          <div><b>🗳️ Le prono final</b><p className="hint">Qualifiés, vainqueur, scores du 1er tour, capitaine, participation… jusqu&apos;à ~280 points.</p></div>
-          <div><b>📅 Les journées</b><p className="hint">Chaque semaine, 3 à 5 mini-questions sur l&apos;actu de la campagne.</p></div>
-          <div><b>🏆 Le classement</b><p className="hint">Général, par journée, badges et chambrage entre potes.</p></div>
+          <div><b>🗳️ Le prono final</b><p className="hint">Classe les candidats, devine les scores, le vainqueur et la participation. 400 pts.</p></div>
+          <div><b>🎯 Les paris</b><p className="hint">500 parrainages, surcotés, sous les 5 %… Parie tôt, ça rapporte plus. 350 pts.</p></div>
+          <div><b>🗣️ Qui a dit ?</b><p className="hint">Chaque semaine, 10 citations de la campagne à attribuer au bon candidat.</p></div>
         </div>
         <div className="row">
           <Link href="/connexion" className="btn">Jouer avec mes potes</Link>

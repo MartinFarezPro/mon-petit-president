@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { computeBadges } from "../lib/badges";
-import { computeStandings, ranks, scoreAnswer, scoreFinalPick } from "../lib/scoring";
-import type { FinalPick, Matchday, Question, Results } from "../lib/types";
+import { computeStandings, maxSoFar, ranks, scoreFinalPick } from "../lib/scoring";
+import type { Candidate, FinalPick, PariReponse, Poll, Quiz, QuizQuestion, QuizReponse, Results } from "../lib/types";
 
 const results: Results = {
   scores: { lepen: 33, philippe: 18, melenchon: 16, glucksmann: 12, retailleau: 7, attal: 5 },
@@ -15,29 +15,30 @@ const basePick = {
   capitaine: null, surprise: null, participation: null,
 } as const;
 
-describe("prono final", () => {
+// 6 candidats au 1er tour : 100 pts de scores répartis en 7 parts (le capitaine compte double)
+const PART = 100 / 7;
+
+describe("prono final (sur 400)", () => {
   it("rien sans résultats", () => {
     expect(scoreFinalPick({ ...basePick, q1: "lepen" }, null).total).toBe(0);
   });
 
-  it("prono parfait", () => {
+  it("prono parfait = 400", () => {
     const s = scoreFinalPick(
       {
         q1: "lepen", q2: "philippe", gagnant: "philippe", score_gagnant: 54,
-        scores: { lepen: 33, philippe: 18 }, capitaine: "lepen", surprise: "retailleau", participation: 72,
+        scores: { ...results.scores }, capitaine: "lepen", surprise: "retailleau", participation: 72,
       },
       results,
     );
-    // 50 qualifiés + 10 ordre + 40 vainqueur + 20 score + (20 capitaine + 10) scores + 15 participation + 15 surprise
-    expect(s.total).toBe(180);
+    expect(s.total).toBe(400);
     expect(s.parts.map((p) => p.label)).toEqual([
       "Qualifiés", "Bon ordre", "Scores 1er tour", "Surprise", "Participation", "Vainqueur", "Score du vainqueur",
     ]);
   });
 
   it("qualifiés dans le désordre : pas de bonus d'ordre", () => {
-    const s = scoreFinalPick({ ...basePick, q1: "philippe", q2: "lepen" }, results);
-    expect(s.total).toBe(50);
+    expect(scoreFinalPick({ ...basePick, q1: "philippe", q2: "lepen" }, results).total).toBe(100);
   });
 
   it("écarts et planchers à 0", () => {
@@ -45,88 +46,75 @@ describe("prono final", () => {
       { ...basePick, scores: { lepen: 30.5, melenchon: 30 }, participation: 75.5, gagnant: "lepen", score_gagnant: 51 },
       { ...results, gagnant: "lepen", score_gagnant: 52.3 },
     );
-    // lepen : 10 − 2×2,5 = 5 ; melenchon : écart 14 → 0 ; participation : 15 − 3×3,5 = 4,5 ;
-    // vainqueur 40 ; score : 20 − 2×1,3 = 17,4
+    // lepen : une part × (1 − 2,5/5) ; melenchon : écart 14 → 0 ; participation : 30 − 6×3,5 = 9 ;
+    // vainqueur 80 ; score : 40 − 4×1,3 = 34,8
     expect(s.parts).toEqual([
-      { label: "Scores 1er tour", points: 5 },
-      { label: "Participation", points: 4.5 },
-      { label: "Vainqueur", points: 40 },
-      { label: "Score du vainqueur", points: 17.4 },
+      { label: "Scores 1er tour", points: Math.round(PART * 0.5 * 10) / 10 },
+      { label: "Participation", points: 9 },
+      { label: "Vainqueur", points: 80 },
+      { label: "Score du vainqueur", points: 34.8 },
     ]);
-    expect(s.total).toBe(66.9);
   });
 
   it("le capitaine double ses points de score", () => {
     const a = scoreFinalPick({ ...basePick, scores: { attal: 6 } }, results).total;
     const b = scoreFinalPick({ ...basePick, scores: { attal: 6 }, capitaine: "attal" }, results).total;
-    expect(a).toBe(8);
-    expect(b).toBe(16);
+    expect(a).toBe(Math.round(PART * 0.8 * 10) / 10);
+    expect(b).toBe(Math.round(PART * 1.6 * 10) / 10);
   });
 
   it("surprise = mieux classé hors des 4 favoris", () => {
-    expect(scoreFinalPick({ ...basePick, surprise: "retailleau" }, results).total).toBe(15);
+    expect(scoreFinalPick({ ...basePick, surprise: "retailleau" }, results).total).toBe(30);
     expect(scoreFinalPick({ ...basePick, surprise: "attal" }, results).total).toBe(0);
   });
 });
 
-const q = (over: Partial<Question>): Question => ({
-  id: "q", matchday_id: "m", intitule: "?", type: "choix", options: {}, points: 10,
-  cloture: null, bonne_reponse: null, ordre: 0, ...over,
-});
-
-describe("questions de journée", () => {
-  it("choix : une ou plusieurs bonnes réponses", () => {
-    expect(scoreAnswer(q({ bonne_reponse: ["A"] }), "A")).toBe(10);
-    expect(scoreAnswer(q({ bonne_reponse: ["A", "B"] }), "B")).toBe(10);
-    expect(scoreAnswer(q({ bonne_reponse: ["A"] }), "C")).toBe(0);
-    expect(scoreAnswer(q({ bonne_reponse: null }), "A")).toBe(0);
-  });
-
-  it("nombre : dégressif selon la tolérance", () => {
-    const n = q({ type: "nombre", options: { tolerance: 4 }, bonne_reponse: 20 });
-    expect(scoreAnswer(n, 20)).toBe(10);
-    expect(scoreAnswer(n, 21)).toBe(7.5);
-    expect(scoreAnswer(n, 25)).toBe(0);
-    expect(scoreAnswer(q({ type: "nombre", bonne_reponse: 3 }), 3)).toBe(10);
-    expect(scoreAnswer(q({ type: "nombre", bonne_reponse: 3 }), 3.1)).toBe(0);
-  });
-});
-
-describe("classement", () => {
-  const now = new Date("2026-12-01T12:00:00Z");
-  const matchdays: Matchday[] = [
-    { id: "m1", league_id: "l", titre: "J1", ouverture: "2026-11-10T00:00:00Z", cloture: "2026-11-15T00:00:00Z" },
-    { id: "m2", league_id: "l", titre: "J2", ouverture: "2026-11-20T00:00:00Z", cloture: "2026-12-10T00:00:00Z" },
+describe("classement de la saison", () => {
+  const now = new Date("2027-03-05T12:00:00+01:00");
+  const cand = (id: string): Candidate => ({ id, nom: id, parti: "", couleur: "#000000", actif: true, ordre: 1, photo: null });
+  const polls: Poll[] = [
+    { id: 1, date: "2026-12-28", source: "", url: null, valeurs: { lepen: 34, ruffin: 3, philippe: 13, melenchon: 17 } },
+    { id: 2, date: "2027-02-22", source: "", url: null, valeurs: { lepen: 33, ruffin: 6, philippe: 14, melenchon: 16 } },
   ];
-  const questions: Question[] = [
-    q({ id: "a", matchday_id: "m1", bonne_reponse: ["X"] }),
-    q({ id: "b", matchday_id: "m1", bonne_reponse: ["Y"], points: 5 }),
-    q({ id: "c", matchday_id: "m2", bonne_reponse: ["Z"] }),
+  const faits = { polls, parrainages: [], results: null, candidates: ["lepen", "ruffin", "philippe", "melenchon"].map(cand) };
+  const tot = "2026-11-12T00:00:00+01:00";
+  const parisReponses: PariReponse[] = [
+    { user_id: "u1", pari_id: "sondage_progression", reponse: ["ruffin"], updated_at: tot },
+    { user_id: "u2", pari_id: "sondage_progression", reponse: ["ruffin"], updated_at: "2026-12-31T23:59:59+01:00" },
+    { user_id: "u2", pari_id: "sondage_podium", reponse: ["philippe"], updated_at: tot },
+    { user_id: "u3", pari_id: "sondage_podium", reponse: ["lepen"], updated_at: tot },
   ];
-  const answers = [
-    { question_id: "a", user_id: "u1", reponse: "X", updated_at: "" },
-    { question_id: "b", user_id: "u1", reponse: "Y", updated_at: "" },
-    { question_id: "a", user_id: "u2", reponse: "X", updated_at: "" },
-    { question_id: "c", user_id: "u2", reponse: "Z", updated_at: "" }, // journée pas encore close
+  const quizzes: Quiz[] = [
+    { id: "z1", titre: "S1", ouverture: "2027-02-20T08:00:00+01:00", cloture: "2027-02-27T23:59:00+01:00" },
+    { id: "z2", titre: "S2", ouverture: "2027-03-01T08:00:00+01:00", cloture: "2027-03-08T23:59:00+01:00" },
   ];
+  const qq = (id: string, quiz_id: string, ordre: number): QuizQuestion => ({ id, quiz_id, ordre, citation: "…", contexte: "", date_citation: null, choix: ["a", "b", "c"] });
+  const quizQuestions = [qq("q1", "z1", 0), qq("q2", "z1", 1), qq("q3", "z2", 0)];
+  const rep = (question_id: string, user_id: string, choix: string): QuizReponse => ({ question_id, user_id, choix, created_at: "" });
+  const quizReponses = [rep("q1", "u1", "a"), rep("q2", "u1", "b"), rep("q1", "u2", "a"), rep("q2", "u2", "c"), rep("q3", "u2", "c")];
+  const corrections = { q1: "a", q2: "b", q3: "c" };
   const picks: FinalPick[] = [
     { ...basePick, user_id: "u3", league_id: "l", capitaine: "attal", scores: {}, classement: [], updated_at: "" },
   ];
+  const input = {
+    memberIds: ["u1", "u2", "u3"], picks, results: null, locked: false, faits, parisReponses,
+    quizzes, quizQuestions, quizReponses, corrections, now,
+  };
 
-  it("ne compte que les journées closes", () => {
-    const st = computeStandings({
-      memberIds: ["u1", "u2", "u3"], picks, results: null, locked: false, matchdays, questions, answers, now,
-    });
-    expect(st.map((s) => [s.userId, s.total])).toEqual([["u1", 15], ["u2", 10], ["u3", 0]]);
-    expect(st[0].byMatchday).toEqual({ m1: 15, m2: 0 });
+  it("paris tranchés (avec précocité) + quiz clos uniquement", () => {
+    const st = computeStandings(input);
+    // u2 : progression à la dernière seconde (25 × 80 %) + podium (25) + 1 bonne réponse au quiz clos
+    expect(st.map((s) => [s.userId, s.paris, s.quiz, s.total])).toEqual([["u2", 45, 1, 46], ["u1", 25, 2, 27], ["u3", 0, 0, 0]]);
+    expect(st[0].parisDetail).toEqual({ sondage_progression: 20, sondage_podium: 25 });
+  });
+
+  it("score parfait à ce jour", () => {
+    expect(maxSoFar(input)).toEqual({ prono: 0, paris: 50, quiz: 2, total: 52 });
   });
 
   it("ajoute le prono final après clôture et résultats", () => {
-    const st = computeStandings({
-      memberIds: ["u3"], picks: [{ ...picks[0], q1: "lepen" }], results, locked: true,
-      matchdays, questions, answers, now,
-    });
-    expect(st[0].total).toBe(25);
+    const st = computeStandings({ ...input, memberIds: ["u3"], picks: [{ ...picks[0], q1: "lepen" }], results, locked: true });
+    expect(st[0].final.total).toBe(50);
     expect(st[0].finalCounted).toBe(true);
   });
 
@@ -135,11 +123,10 @@ describe("classement", () => {
   });
 
   it("badges", () => {
-    const standings = computeStandings({
-      memberIds: ["u1", "u2", "u3"], picks, results: null, locked: true, matchdays, questions, answers, now,
-    });
-    const b = computeBadges({ standings, matchdays, questions, picks, locked: true, now });
-    expect(b.u1.map((x) => x.id)).toEqual(["leader", "nostradamus", "sansfaute", "assidu"]);
+    const standings = computeStandings({ ...input, locked: true });
+    const b = computeBadges({ standings, quizzes, quizQuestions, quizReponses, picks, locked: true, now });
+    expect(b.u1.map((x) => x.id)).toEqual(["sansfaute", "flair"]);
+    expect(b.u2.map((x) => x.id)).toEqual(["leader", "flair"]);
     expect(b.u3.map((x) => x.id)).toEqual(["lanterne", "boulet", "kamikaze"]);
   });
 });

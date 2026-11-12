@@ -53,42 +53,44 @@ export type Results = {
   participation: number | null;
   gagnant: string | null;
   score_gagnant: number | null;
+  participation_t2?: number | null;
   updated_at?: string;
 };
 
-export type Matchday = {
+export type Parrainages = {
+  date: string;
+  valeurs: Record<string, number>;
+};
+
+export type PariReponse = {
+  user_id: string;
+  pari_id: string;
+  reponse: string[];
+  updated_at: string;
+};
+
+export type Quiz = {
   id: string;
-  league_id: string;
   titre: string;
   ouverture: string;
   cloture: string;
 };
 
-export type QuestionType = "choix" | "nombre";
-
-export type QuestionOptions = {
-  choix?: string[];
-  tolerance?: number;
-  unite?: string;
-};
-
-export type Question = {
+export type QuizQuestion = {
   id: string;
-  matchday_id: string;
-  intitule: string;
-  type: QuestionType;
-  options: QuestionOptions;
-  points: number;
-  cloture: string | null;
-  bonne_reponse: string[] | number | null;
+  quiz_id: string;
   ordre: number;
+  citation: string;
+  contexte: string;
+  date_citation: string | null;
+  choix: string[];
 };
 
-export type Answer = {
+export type QuizReponse = {
   question_id: string;
   user_id: string;
-  reponse: string | number;
-  updated_at: string;
+  choix: string;
+  created_at: string;
 };
 
 export type Reaction = {

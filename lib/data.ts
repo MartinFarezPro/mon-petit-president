@@ -2,8 +2,10 @@ import "server-only";
 import { notFound, redirect } from "next/navigation";
 import { cache } from "react";
 import { createClient } from "./supabase/server";
+import type { Faits } from "./paris";
+import type { Corrections } from "./quiz";
 import type {
-  Answer, Candidate, FinalPick, League, Matchday, Poll, Profile, Question, Reaction, Results,
+  Candidate, FinalPick, League, PariReponse, Parrainages, Poll, Profile, Quiz, QuizQuestion, QuizReponse, Reaction, Results,
 } from "./types";
 
 export const getSession = cache(async () => {
@@ -12,7 +14,13 @@ export const getSession = cache(async () => {
   const userId = (data?.claims?.sub as string | undefined) ?? null;
   let profile: Profile | null = null;
   if (userId) {
-    const { data: p } = await supabase.from("profiles").select("*").eq("id", userId).maybeSingle();
+    const load = () => supabase.from("profiles").select("*").eq("id", userId).maybeSingle();
+    let { data: p } = await load();
+    if (!p) {
+      // Compte sans profil (créé avant le trigger, ou trigger en échec) : on le crée au lieu de boucler sur /connexion.
+      await supabase.rpc("ensure_profile");
+      ({ data: p } = await load());
+    }
     profile = p as Profile | null;
   }
   return { supabase, userId, profile };
@@ -45,6 +53,32 @@ export const getResults = cache(async () => {
   return (data ?? null) as Results | null;
 });
 
+export const getParrainages = cache(async () => {
+  const { supabase } = await getSession();
+  const { data } = await supabase.from("parrainages").select("date, valeurs").order("date", { ascending: false });
+  return (data ?? []) as Parrainages[];
+});
+
+/** Quiz publiés (ou tous pour un superadmin), leurs questions (sans la réponse) et les corrections visibles. */
+export const getQuizzes = cache(async () => {
+  const { supabase } = await getSession();
+  const [{ data: quizzes }, { data: questions }, { data: corr }] = await Promise.all([
+    supabase.from("quiz").select("id, titre, ouverture, cloture").order("ouverture", { ascending: false }),
+    supabase.from("quiz_questions").select("id, quiz_id, ordre, citation, contexte, date_citation, choix").order("ordre"),
+    supabase.rpc("quiz_corrections"),
+  ]);
+  const corrections: Corrections = Object.fromEntries(
+    ((corr ?? []) as { question_id: string; reponse: string }[]).map((c) => [c.question_id, c.reponse]),
+  );
+  return { quizzes: (quizzes ?? []) as Quiz[], questions: (questions ?? []) as QuizQuestion[], corrections };
+});
+
+/** Données officielles qui tranchent les paris (candidats inactifs compris : un retrait compte). */
+export const getFaits = cache(async (): Promise<Faits> => {
+  const [polls, parrainages, results, candidates] = await Promise.all([getPolls(), getParrainages(), getResults(), getCandidates(true)]);
+  return { polls, parrainages, results: results ? normalizeResults(results) : null, candidates };
+});
+
 export type LeagueContext = Awaited<ReturnType<typeof loadLeague>>;
 
 export const loadLeague = cache(async (leagueId: string) => {
@@ -54,28 +88,25 @@ export const loadLeague = cache(async (leagueId: string) => {
   const { data: league } = await supabase.from("leagues").select("*").eq("id", leagueId).maybeSingle();
   if (!league) notFound();
 
-  const [members, matchdays, picks, pickStatus, answerStatus, reactions, candidates, polls, results] =
+  const [members, picks, pickStatus, parisStatus, reactions, candidates, polls, results, faits, quiz] =
     await Promise.all([
       supabase.from("league_members").select("user_id, joined_at, profiles(*)").eq("league_id", leagueId),
-      supabase.from("matchdays").select("*").eq("league_id", leagueId).order("cloture", { ascending: true }),
       supabase.from("final_picks").select("*").eq("league_id", leagueId),
       supabase.rpc("league_pick_status", { p_league: leagueId }),
-      supabase.rpc("league_answer_status", { p_league: leagueId }),
+      supabase.rpc("league_paris_status", { p_league: leagueId }),
       supabase.from("reactions").select("*").eq("league_id", leagueId),
       getCandidates(),
       getPolls(),
       getResults(),
+      getFaits(),
+      getQuizzes(),
     ]);
 
-  const mds = (matchdays.data ?? []) as Matchday[];
-  const mdIds = mds.map((m) => m.id);
-  const { data: qs } = mdIds.length
-    ? await supabase.from("questions").select("*").in("matchday_id", mdIds).order("ordre")
-    : { data: [] };
-  const qIds = (qs ?? []).map((q) => q.id as string);
-  const { data: ans } = qIds.length
-    ? await supabase.from("answers").select("*").in("question_id", qIds)
-    : { data: [] };
+  const memberIds = (members.data ?? []).map((m) => m.user_id as string);
+  const [{ data: paris }, { data: quizRep }] = await Promise.all([
+    supabase.from("paris_reponses").select("*").in("user_id", memberIds),
+    supabase.from("quiz_reponses").select("*").in("user_id", memberIds),
+  ]);
 
   const memberProfiles = (members.data ?? [])
     .map((m) => ({ ...(m.profiles as unknown as Profile), joined_at: m.joined_at as string }))
@@ -89,12 +120,15 @@ export const loadLeague = cache(async (leagueId: string) => {
     isAdmin: league.admin_id === userId,
     members: memberProfiles,
     profilesById: Object.fromEntries(memberProfiles.map((p) => [p.id, p])) as Record<string, Profile>,
-    matchdays: mds,
-    questions: (qs ?? []).map((q) => ({ ...q, points: Number(q.points) })) as Question[],
-    answers: (ans ?? []) as Answer[],
     picks: ((picks.data ?? []) as FinalPick[]).map(normalizePick),
     pickStatus: (pickStatus.data ?? []) as { user_id: string; updated_at: string }[],
-    answerStatus: (answerStatus.data ?? []) as { question_id: string; user_id: string }[],
+    parisStatus: (parisStatus.data ?? []) as { user_id: string; pari_id: string }[],
+    parisReponses: (paris ?? []) as PariReponse[],
+    faits,
+    quizzes: quiz.quizzes,
+    quizQuestions: quiz.questions,
+    corrections: quiz.corrections,
+    quizReponses: (quizRep ?? []) as QuizReponse[],
     reactions: (reactions.data ?? []) as Reaction[],
     candidates,
     polls,
@@ -111,5 +145,8 @@ function normalizePick(p: FinalPick): FinalPick {
 }
 
 function normalizeResults(r: Results): Results {
-  return { ...r, participation: num(r.participation), score_gagnant: num(r.score_gagnant), scores: r.scores ?? {} };
+  return {
+    ...r, participation: num(r.participation), score_gagnant: num(r.score_gagnant),
+    participation_t2: num(r.participation_t2), scores: r.scores ?? {},
+  };
 }

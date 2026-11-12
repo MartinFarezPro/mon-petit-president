@@ -3,7 +3,8 @@ import { LeagueTabs } from "@/components/LeagueTabs";
 import { TopBar } from "@/components/TopBar";
 import { PRONO_LOCK } from "@/lib/constants";
 import { loadLeague } from "@/lib/data";
-import { questionCloture } from "@/lib/scoring";
+import { PARIS } from "@/lib/paris";
+import { quizOuvert } from "@/lib/quiz";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -14,13 +15,14 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function LeagueLayout({ children, params }: { children: React.ReactNode; params: Promise<{ id: string }> }) {
   const { id } = await params;
   const ctx = await loadLeague(id);
-  const now = Date.now();
-  // Journées ouvertes où il me reste des questions sans réponse
-  const openCount = ctx.matchdays.filter((m) => {
-    if (now < +new Date(m.ouverture)) return false;
-    const qs = ctx.questions.filter((q) => q.matchday_id === m.id && now < questionCloture(q, m).getTime());
-    return qs.some((q) => !ctx.answers.some((a) => a.question_id === q.id && a.user_id === ctx.userId));
-  }).length;
+  const now = new Date();
+  // Paris ouverts pas encore placés, citations du quiz en cours sans réponse
+  const parisTodo = PARIS.filter((p) => now >= new Date(p.ouverture) && now < new Date(p.cloture)
+    && !ctx.parisReponses.some((r) => r.user_id === ctx.userId && r.pari_id === p.id)).length;
+  const current = ctx.quizzes.find((z) => quizOuvert(z, now));
+  const quizTodo = current
+    ? ctx.quizQuestions.filter((q) => q.quiz_id === current.id && !ctx.quizReponses.some((r) => r.question_id === q.id && r.user_id === ctx.userId)).length
+    : 0;
 
   return (
     <main className="wrap">
@@ -36,7 +38,7 @@ export default async function LeagueLayout({ children, params }: { children: Rea
         </div>
         <Countdown target={PRONO_LOCK.toISOString()} label="avant la clôture du prono final (17 avril, 23 h 59)" doneLabel="les pronos sont figés" />
       </header>
-      <LeagueTabs base={`/ligues/${id}`} isAdmin={ctx.isAdmin} openCount={openCount} />
+      <LeagueTabs base={`/ligues/${id}`} isAdmin={ctx.isAdmin} parisTodo={parisTodo} quizTodo={quizTodo} />
       {children}
       <footer className="foot">Pour le fun, entre amis · Sondages mis à jour chaque lundi.</footer>
     </main>

@@ -2,6 +2,7 @@
 
 import { useActionState, useMemo, useState } from "react";
 import { saveFinalPick } from "@/app/actions/picks";
+import { AVote } from "@/components/AVote";
 import { FormMessage } from "@/components/FormMessage";
 import { Portrait } from "@/components/Portrait";
 import { SubmitButton } from "@/components/SubmitButton";
@@ -128,6 +129,7 @@ export function PickForm({ leagueId, candidates, poll, pick, locked }: {
 
   return (
     <form action={action} className="stack">
+      <AVote trigger={state?.ok ? state.at : null} />
       <input type="hidden" name="league_id" value={leagueId} />
       <input type="hidden" name="capitaine" value={captain} />
       <input type="hidden" name="classement" value={mode ? "" : ranking.join(",")} />

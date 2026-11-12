@@ -1,7 +1,24 @@
 import { FAVORIS } from "./constants";
-import type { Answer, FinalPick, Matchday, Question, Results } from "./types";
+import { compte, PARIS, POINTS_PARI, scorePari, trancher, type Faits, type Verdict } from "./paris";
+import { POINTS_QUESTION, quizClos, scoreQuiz, type Corrections } from "./quiz";
+import type { FinalPick, PariReponse, Quiz, QuizQuestion, QuizReponse, Results } from "./types";
 
 export const round1 = (x: number) => Math.round(x * 10) / 10;
+
+/**
+ * Le score parfait de la saison fait 1000 pts :
+ * prono final 400 (40 %), paris 350 (35 %), quiz ~250 (25 %, 1 pt par bonne réponse).
+ */
+export const BAREME = {
+  prono: 400,
+  qualifie: 50,
+  ordre: 20,
+  scores: 100,
+  surprise: 30,
+  participation: 30,
+  vainqueur: 80,
+  scoreVainqueur: 40,
+} as const;
 
 export type ScorePart = { label: string; points: number };
 export type ScoreBreakdown = { total: number; parts: ScorePart[] };
@@ -20,8 +37,9 @@ export function firstRoundRanking(results: Pick<Results, "scores">): string[] {
 }
 
 /**
- * Barème du prono final (cf. brief §4).
- * Les points de chaque élément sont arrondis à 0,1 ; un élément à 0 n'apparaît pas dans le détail.
+ * Barème du prono final, sur 400 pts.
+ * Scores du 1er tour : 100 pts partagés entre les candidats (le capitaine compte double),
+ * chaque part baisse de 20 % par point d'écart.
  */
 export function scoreFinalPick(pick: PickLike, results: Results | null): ScoreBreakdown {
   const parts: ScorePart[] = [];
@@ -37,31 +55,32 @@ export function scoreFinalPick(pick: PickLike, results: Results | null): ScoreBr
   if (ranking.length >= 2) {
     const top = [ranking[0], ranking[1]];
     const found = [pick.q1, pick.q2].filter((x) => x && top.includes(x)).length;
-    add("Qualifiés", found * 25);
-    if (pick.q1 === top[0] && pick.q2 === top[1]) add("Bon ordre", 10);
+    add("Qualifiés", found * BAREME.qualifie);
+    if (pick.q1 === top[0] && pick.q2 === top[1]) add("Bon ordre", BAREME.ordre);
 
+    const part = BAREME.scores / (ranking.length + 1);
     let sc = 0;
     for (const [id, real] of Object.entries(rs)) {
       const guess = pick.scores?.[id];
       if (guess == null || real == null) continue;
-      let v = Math.max(0, 10 - 2 * Math.abs(guess - real));
+      let v = part * Math.max(0, 1 - Math.abs(guess - real) / 5);
       if (pick.capitaine === id) v *= 2;
       sc += v;
     }
     add("Scores 1er tour", sc);
 
     const surprise = ranking.find((id) => !(FAVORIS as readonly string[]).includes(id));
-    if (surprise && pick.surprise === surprise) add("Surprise", 15);
+    if (surprise && pick.surprise === surprise) add("Surprise", BAREME.surprise);
   }
 
   if (results.participation != null && pick.participation != null) {
-    add("Participation", Math.max(0, 15 - 3 * Math.abs(pick.participation - results.participation)));
+    add("Participation", Math.max(0, BAREME.participation - 6 * Math.abs(pick.participation - results.participation)));
   }
 
   if (results.gagnant) {
-    if (pick.gagnant === results.gagnant) add("Vainqueur", 40);
+    if (pick.gagnant === results.gagnant) add("Vainqueur", BAREME.vainqueur);
     if (results.score_gagnant != null && pick.score_gagnant != null) {
-      add("Score du vainqueur", Math.max(0, 20 - 2 * Math.abs(pick.score_gagnant - results.score_gagnant)));
+      add("Score du vainqueur", Math.max(0, BAREME.scoreVainqueur - 4 * Math.abs(pick.score_gagnant - results.score_gagnant)));
     }
   }
 
@@ -72,29 +91,9 @@ export function hasResults(r: Results | null): r is Results {
   return !!r && (Object.keys(r.scores ?? {}).length > 0 || !!r.gagnant || r.participation != null);
 }
 
-/** Clôture effective d'une question (sa propre date, sinon celle de la journée). */
-export function questionCloture(q: Question, md: Matchday): Date {
-  return new Date(q.cloture ?? md.cloture);
-}
-
-export function isQuestionScored(q: Question) {
-  return q.bonne_reponse !== null && q.bonne_reponse !== undefined;
-}
-
-/** Points d'une réponse à une question de journée. */
-export function scoreAnswer(q: Question, reponse: string | number | null | undefined): number {
-  if (!isQuestionScored(q) || reponse == null || reponse === "") return 0;
-  if (q.type === "choix") {
-    const good = Array.isArray(q.bonne_reponse) ? q.bonne_reponse : [String(q.bonne_reponse)];
-    return good.includes(String(reponse)) ? round1(q.points) : 0;
-  }
-  const real = Number(q.bonne_reponse);
-  const guess = Number(reponse);
-  if (Number.isNaN(real) || Number.isNaN(guess)) return 0;
-  const tol = Math.max(0, Number(q.options?.tolerance ?? 0));
-  const ecart = Math.abs(guess - real);
-  if (tol === 0) return ecart < 1e-9 ? round1(q.points) : 0;
-  return round1(q.points * Math.max(0, 1 - ecart / tol));
+/** Le prono final est entièrement tranché (vainqueur connu). */
+export function pronoComplet(r: Results | null) {
+  return !!r?.gagnant && firstRoundRanking(r).length >= 2;
 }
 
 export type PlayerStanding = {
@@ -102,8 +101,10 @@ export type PlayerStanding = {
   total: number;
   final: ScoreBreakdown;
   finalCounted: boolean;
-  byMatchday: Record<string, number>;
-  answeredClosed: number;
+  paris: number;
+  parisDetail: Record<string, number>;
+  quiz: number;
+  quizDetail: Record<string, number>;
 };
 
 export type StandingsInput = {
@@ -111,48 +112,64 @@ export type StandingsInput = {
   picks: FinalPick[];
   results: Results | null;
   locked: boolean;
-  matchdays: Matchday[];
-  questions: Question[];
-  answers: Answer[];
+  faits: Faits;
+  parisReponses: PariReponse[];
+  quizzes: Quiz[];
+  quizQuestions: QuizQuestion[];
+  quizReponses: QuizReponse[];
+  corrections: Corrections;
   now?: Date;
 };
 
-/** Classement général + points par journée. Seules les questions closes et corrigées comptent. */
+/** Verdicts de tous les paris (null = pas encore tranché). */
+export function verdicts(faits: Faits, now = new Date()): Record<string, Verdict | null> {
+  return Object.fromEntries(PARIS.map((p) => [p.id, trancher(p, faits, now)]));
+}
+
+/** Classement général : prono final + paris clos et tranchés + quiz clos. */
 export function computeStandings(input: StandingsInput): PlayerStanding[] {
   const now = input.now ?? new Date();
-  const mdById = new Map(input.matchdays.map((m) => [m.id, m]));
-  const closedQuestions = input.questions.filter((q) => {
-    const md = mdById.get(q.matchday_id);
-    return md && questionCloture(q, md).getTime() <= now.getTime();
-  });
-  const qById = new Map(closedQuestions.map((q) => [q.id, q]));
   const resultsReady = input.locked && hasResults(input.results);
+  const vs = verdicts(input.faits, now);
+  const closedQuizzes = input.quizzes.filter((z) => quizClos(z, now));
 
   const rows: PlayerStanding[] = input.memberIds.map((userId) => {
     const pick = input.picks.find((p) => p.user_id === userId);
     const final = pick && resultsReady ? scoreFinalPick(pick, input.results) : { total: 0, parts: [] };
-    const byMatchday: Record<string, number> = {};
-    for (const m of input.matchdays) byMatchday[m.id] = 0;
-    let answeredClosed = 0;
-    for (const a of input.answers) {
-      if (a.user_id !== userId) continue;
-      const q = qById.get(a.question_id);
-      if (!q) continue;
-      answeredClosed++;
-      byMatchday[q.matchday_id] = round1((byMatchday[q.matchday_id] ?? 0) + scoreAnswer(q, a.reponse));
+
+    const parisDetail: Record<string, number> = {};
+    for (const p of PARIS) {
+      const rep = input.parisReponses.find((r) => r.user_id === userId && r.pari_id === p.id);
+      const s = scorePari(p, vs[p.id], rep, now);
+      if (s) parisDetail[p.id] = s.points;
     }
-    const mdTotal = Object.values(byMatchday).reduce((a, b) => a + b, 0);
+    const paris = round1(Object.values(parisDetail).reduce((a, b) => a + b, 0));
+
+    const quizDetail: Record<string, number> = {};
+    for (const z of closedQuizzes) {
+      const qs = input.quizQuestions.filter((q) => q.quiz_id === z.id);
+      quizDetail[z.id] = scoreQuiz(qs, input.corrections, input.quizReponses, userId).points;
+    }
+    const quiz = round1(Object.values(quizDetail).reduce((a, b) => a + b, 0));
+
     return {
-      userId,
-      final,
-      finalCounted: resultsReady && !!pick,
-      byMatchday,
-      answeredClosed,
-      total: round1(final.total + mdTotal),
+      userId, final, finalCounted: resultsReady && !!pick, paris, parisDetail, quiz, quizDetail,
+      total: round1(final.total + paris + quiz),
     };
   });
 
   return rows.sort((a, b) => b.total - a.total);
+}
+
+/** Score parfait atteignable à ce jour (ce qui a déjà été tranché). */
+export function maxSoFar(input: Pick<StandingsInput, "results" | "locked" | "faits" | "quizzes" | "quizQuestions" | "now">) {
+  const now = input.now ?? new Date();
+  const vs = verdicts(input.faits, now);
+  const paris = PARIS.filter((p) => compte(p, vs[p.id], now)).length * POINTS_PARI;
+  const closed = new Set(input.quizzes.filter((z) => quizClos(z, now)).map((z) => z.id));
+  const quiz = input.quizQuestions.filter((q) => closed.has(q.quiz_id)).length * POINTS_QUESTION;
+  const prono = input.locked && pronoComplet(input.results) ? BAREME.prono : 0;
+  return { prono, paris, quiz, total: prono + paris + quiz };
 }
 
 /** Rangs avec ex æquo (1, 2, 2, 4…). */

@@ -73,7 +73,8 @@ export function displayName(p: { pseudo?: string; equipe?: string } | undefined)
   return p.equipe || p.pseudo || "Joueur";
 }
 
-/** "Jean-Luc Mélenchon" → "Mélenchon", "Dominique de Villepin" → "Villepin" */
+/** "Jean-Luc Mélenchon" → "Mélenchon", "Dominique de Villepin" → "Villepin", "Marine Le Pen" → "Le Pen" */
 export function shortName(nom: string) {
-  return nom.split(" ").slice(-1)[0];
+  const w = nom.split(" ");
+  return w.length > 2 && /^(Le|La)$/.test(w[w.length - 2]) ? w.slice(-2).join(" ") : w[w.length - 1];
 }

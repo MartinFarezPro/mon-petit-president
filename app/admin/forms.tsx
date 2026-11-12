@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { addCandidate, addPoll, saveCandidates, saveResults } from "@/app/actions/admin";
+import { addCandidate, addParrainages, addPoll, importQuiz, saveCandidates, saveResults } from "@/app/actions/admin";
 import { FormMessage } from "@/components/FormMessage";
 import { SubmitButton } from "@/components/SubmitButton";
 import { fmtNum } from "@/lib/format";
@@ -111,8 +111,47 @@ export function ResultsForm({ candidates, results }: { candidates: Candidate[]; 
           </select>
         </div>
         <div><label>Score (%)</label><input type="text" inputMode="decimal" pattern="[0-9]+([.,][0-9]+)?" className="numfield" name="score_gagnant" defaultValue={results?.score_gagnant ?? ""} /></div>
+        <div><label>Participation 2nd tour (%)</label><input type="text" inputMode="decimal" pattern="[0-9]+([.,][0-9]+)?" className="numfield" name="participation_t2" defaultValue={results?.participation_t2 ?? ""} /></div>
       </div>
       <div className="row"><SubmitButton>Enregistrer les résultats</SubmitButton></div>
+      <FormMessage state={state} />
+    </form>
+  );
+}
+
+export function ParrainagesForm({ candidates, last, today }: { candidates: Candidate[]; last: Record<string, number>; today: string }) {
+  const [state, action] = useActionState(addParrainages, null);
+  return (
+    <form action={action} className="stack">
+      <div className="grid3">
+        <div><label>Date de publication</label><input type="date" name="date" defaultValue={today} required /></div>
+      </div>
+      <div className="cands">
+        {candidates.map((c) => (
+          <div className="cand nocap" key={c.id}>
+            <span className="dot" style={{ background: c.couleur }} />
+            <div className="nm"><b>{c.nom}</b><small>précédent : {last[c.id] ?? "n.c."}</small></div>
+            <input type="text" inputMode="numeric" pattern="[0-9]+" className="numfield" name={`p_${c.id}`} aria-label={c.nom} defaultValue={last[c.id] ?? ""} />
+          </div>
+        ))}
+      </div>
+      <div className="row"><SubmitButton>Enregistrer ce relevé</SubmitButton></div>
+      <FormMessage state={state} />
+    </form>
+  );
+}
+
+export function QuizImportForm({ example }: { example: string }) {
+  const [state, action] = useActionState(importQuiz, null);
+  const [json, setJson] = useState("");
+  return (
+    <form action={action} className="stack">
+      <textarea name="json" value={json} onChange={(e) => setJson(e.target.value)} rows={12} spellCheck={false}
+        className="mono" style={{ fontSize: 12 }} placeholder={example} required />
+      <div className="row">
+        <SubmitButton>Publier le quiz</SubmitButton>
+        <button type="button" className="btn ghost small" onClick={() => setJson(example)}>Charger le modèle</button>
+      </div>
       <FormMessage state={state} />
     </form>
   );

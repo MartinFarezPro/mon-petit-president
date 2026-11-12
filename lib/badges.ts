@@ -1,38 +1,26 @@
 import { FAVORIS } from "./constants";
-import { isQuestionScored, questionCloture, type PlayerStanding } from "./scoring";
-import type { FinalPick, Matchday, Question } from "./types";
+import { quizClos, serie } from "./quiz";
+import type { PlayerStanding } from "./scoring";
+import type { FinalPick, Quiz, QuizQuestion, QuizReponse } from "./types";
 
 export type Badge = { id: string; emoji: string; label: string; title: string };
 
 export const BADGES = {
   leader: { id: "leader", emoji: "🥇", label: "Maillot jaune", title: "En tête du classement général" },
   lanterne: { id: "lanterne", emoji: "🏮", label: "Lanterne rouge", title: "Dernier du classement général" },
-  nostradamus: { id: "nostradamus", emoji: "🔮", label: "Nostradamus", title: "Meilleur score de la dernière journée" },
-  boulet: { id: "boulet", emoji: "🪨", label: "Boulet de la semaine", title: "Pire score de la dernière journée" },
-  sansfaute: { id: "sansfaute", emoji: "💯", label: "Sans-faute", title: "Tous les points de la dernière journée" },
-  assidu: { id: "assidu", emoji: "📅", label: "Assidu", title: "A répondu à toutes les questions closes" },
+  nostradamus: { id: "nostradamus", emoji: "🔮", label: "Nostradamus", title: "Meilleur score au dernier quiz" },
+  boulet: { id: "boulet", emoji: "🪨", label: "Boulet de la semaine", title: "Pire score au dernier quiz" },
+  sansfaute: { id: "sansfaute", emoji: "💯", label: "Sans-faute", title: "10/10 au dernier quiz" },
+  serie: { id: "serie", emoji: "🔥", label: "En série", title: "A joué tous les quiz depuis au moins 3 semaines" },
+  flair: { id: "flair", emoji: "🎯", label: "Flair", title: "Au moins un pari parfait" },
   kamikaze: { id: "kamikaze", emoji: "🪂", label: "Kamikaze", title: "Capitaine hors des 4 favoris" },
 } satisfies Record<string, Badge>;
 
-/** Dernière journée close dont au moins une question est corrigée. */
-export function lastScoredMatchday(matchdays: Matchday[], questions: Question[], now = new Date()) {
-  const scored = matchdays
-    .filter((m) => {
-      const qs = questions.filter((q) => q.matchday_id === m.id);
-      return (
-        qs.length > 0 &&
-        qs.some(isQuestionScored) &&
-        qs.every((q) => questionCloture(q, m).getTime() <= now.getTime())
-      );
-    })
-    .sort((a, b) => +new Date(b.cloture) - +new Date(a.cloture));
-  return scored[0] ?? null;
-}
-
 export function computeBadges(opts: {
   standings: PlayerStanding[];
-  matchdays: Matchday[];
-  questions: Question[];
+  quizzes: Quiz[];
+  quizQuestions: QuizQuestion[];
+  quizReponses: QuizReponse[];
   picks: FinalPick[];
   locked: boolean;
   now?: Date;
@@ -49,24 +37,20 @@ export function computeBadges(opts: {
   if (max > 0) st.filter((s) => s.total === max).forEach((s) => give(s.userId, BADGES.leader));
   if (st.length >= 3 && min < max) st.filter((s) => s.total === min).forEach((s) => give(s.userId, BADGES.lanterne));
 
-  const md = lastScoredMatchday(opts.matchdays, opts.questions, now);
-  if (md) {
-    const pts = st.map((s) => ({ id: s.userId, p: s.byMatchday[md.id] ?? 0 }));
+  const last = [...opts.quizzes].filter((z) => quizClos(z, now)).sort((a, b) => +new Date(b.cloture) - +new Date(a.cloture))[0];
+  if (last) {
+    const pts = st.map((s) => ({ id: s.userId, p: s.quizDetail[last.id] ?? 0 }));
     const hi = Math.max(...pts.map((x) => x.p));
     const lo = Math.min(...pts.map((x) => x.p));
-    if (hi > 0) pts.filter((x) => x.p === hi).forEach((x) => give(x.id, BADGES.nostradamus));
+    const n = opts.quizQuestions.filter((q) => q.quiz_id === last.id).length;
+    if (hi > 0) pts.filter((x) => x.p === hi).forEach((x) => give(x.id, x.p >= n ? BADGES.sansfaute : BADGES.nostradamus));
     if (pts.length >= 3 && lo < hi) pts.filter((x) => x.p === lo).forEach((x) => give(x.id, BADGES.boulet));
-    const maxPossible = opts.questions
-      .filter((q) => q.matchday_id === md.id && isQuestionScored(q))
-      .reduce((a, q) => a + Number(q.points), 0);
-    if (maxPossible > 0) pts.filter((x) => x.p >= maxPossible - 1e-9).forEach((x) => give(x.id, BADGES.sansfaute));
   }
 
-  const closedCount = opts.questions.filter((q) => {
-    const m = opts.matchdays.find((x) => x.id === q.matchday_id);
-    return m && questionCloture(q, m).getTime() <= now.getTime();
-  }).length;
-  if (closedCount > 0) st.filter((s) => s.answeredClosed >= closedCount).forEach((s) => give(s.userId, BADGES.assidu));
+  for (const s of st) {
+    if (serie(opts.quizzes, opts.quizQuestions, opts.quizReponses, s.userId, now) >= 3) give(s.userId, BADGES.serie);
+    if (Object.values(s.parisDetail).some((p) => p >= 20)) give(s.userId, BADGES.flair);
+  }
 
   if (opts.locked) {
     for (const p of opts.picks) {
